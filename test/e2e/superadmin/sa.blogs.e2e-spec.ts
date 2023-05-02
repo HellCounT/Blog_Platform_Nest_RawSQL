@@ -32,7 +32,7 @@ describe('Super Admin Blogs Controller (e2e)', () => {
     it('1.1 Should return 401 if Super Admin credentials are not entered:', async () => {
       await request(app).get(superAdminBlogsPath).expect(401);
     });
-    it('1.2. Should return 200 if correct credentials are entered:', async () => {
+    it('1.2. Should return 200 and paginated inserted blog if correct credentials are entered:', async () => {
       const user = usersFactory.createUser();
       const userId = await usersFactory.insertUser(app, user);
       const tokenPair = await usersFactory.loginAndGetTokenPair(app, user);
