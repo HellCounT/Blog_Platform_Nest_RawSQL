@@ -1,24 +1,69 @@
 import { Injectable } from '@nestjs/common';
-import { UserDb } from './types/users.types';
+import { UserDb, UserSqlJoinedType } from './types/users.types';
 import mongoose, { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entity/users.schema';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectModel(User.name) private userModel: Model<UserDocument>) {}
-  async getUserById(id: string): Promise<UserDocument> {
-    return this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
+  constructor(
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
+    @InjectDataSource() protected dataSource: DataSource,
+  ) {}
+  async getUserById(id: string): Promise<UserDb> {
+    try {
+      const result = await this.dataSource.query(
+        `
+SELECT
+u."id", u."login", u."email", u."createdAt", u."hash", 
+c."confirmationCode", c."confirmationExpirationDate", c."isConfirmed",
+r."recoveryCode", r."recoveryExpirationDate",
+b."isBanned", b."banDate", b."banReason"
+FROM "USERS" AS u
+JOIN "USERS_CONFIRMATIONS" AS c
+ON u."id" = c."userId"
+JOIN "USERS_RECOVERY" AS r
+ON u."id" = r."userId"
+JOIN "USERS_GLOBAL_BAN" AS b
+ON u."id" = b."userId"
+WHERE u."id" = $1
+    `,
+        [id],
+      );
+      if (result.length < 1) return null;
+      const foundUser: UserSqlJoinedType = result[0];
+      return {
+        id: foundUser.id,
+        accountData: {
+          login: foundUser.login,
+          email: foundUser.email,
+          hash: foundUser.hash,
+          createdAt: foundUser.createdAt,
+        },
+        emailConfirmationData: {
+          confirmationCode: foundUser.confirmationCode,
+          expirationDate: foundUser.confirmationExpirationDate,
+          isConfirmed: foundUser.isConfirmed,
+        },
+        recoveryCodeData: {
+          recoveryCode: foundUser.recoveryCode,
+          expirationDate: foundUser.recoveryExpirationDate,
+        },
+        globalBanInfo: {
+          isBanned: foundUser.isBanned,
+          banDate: foundUser.banDate,
+          banReason: foundUser.banReason,
+        },
+      };
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async createUser(newUser: UserDb): Promise<OutputSuperAdminUserDto> {
-    const userInstance = new this.userModel(newUser);
-    const result = await userInstance.save();
-    let banDateString;
-    if (result.globalBanInfo.banDate === null) banDateString = null;
-    else banDateString = result.globalBanInfo.banDate.toISOString();
     return {
       id: result._id.toString(),
       login: result.accountData.login,
@@ -26,7 +71,7 @@ export class UsersRepository {
       createdAt: result.accountData.createdAt,
       banInfo: {
         isBanned: result.globalBanInfo.isBanned,
-        banDate: banDateString,
+        banDate: null,
         banReason: result.globalBanInfo.banReason,
       },
     };

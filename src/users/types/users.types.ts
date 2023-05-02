@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-
 export type UserViewModelType = {
   id: string;
   login: string;
@@ -17,7 +15,7 @@ export type UserPaginatorType = {
 
 export class UserDb {
   constructor(
-    public _id: mongoose.Types.ObjectId,
+    public id: string,
     public accountData: {
       login: string;
       email: string;
@@ -40,3 +38,19 @@ export class UserDb {
     },
   ) {}
 }
+
+export type UserSqlJoinedType = {
+  id: string;
+  login: string;
+  email: string;
+  hash: string;
+  createdAt: string;
+  confirmationCode: string;
+  confirmationExpirationDate: string;
+  isConfirmed: boolean;
+  recoveryCode?: string;
+  recoveryExpirationDate?: Date;
+  isBanned: boolean;
+  banDate?: Date | null;
+  banReason?: string | null;
+};
