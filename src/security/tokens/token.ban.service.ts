@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import { Injectable } from '@nestjs/common';
 
 import { ExpiredTokensRepository } from './expired.tokens.repository';
@@ -6,10 +5,7 @@ import { ExpiredTokensRepository } from './expired.tokens.repository';
 @Injectable()
 export class TokenBanService {
   constructor(protected expiredTokensRepo: ExpiredTokensRepository) {}
-  async banRefreshToken(
-    refreshToken: string,
-    userId: mongoose.Types.ObjectId,
-  ): Promise<void> {
+  async banRefreshToken(refreshToken: string, userId: string): Promise<void> {
     const refreshTokenMeta = this.createMeta(refreshToken);
     await this.expiredTokensRepo.addTokenToDb(refreshTokenMeta, userId);
   }

@@ -6,6 +6,7 @@ import { User, UserDocument } from './entity/users.schema';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { sqlUserJoinQuery } from '../application-helpers/sql.user.join.query';
 
 @Injectable()
 export class UsersRepository {
@@ -16,81 +17,120 @@ export class UsersRepository {
   async getUserById(id: string): Promise<UserDb> {
     try {
       const result = await this.dataSource.query(
-        `
-SELECT
-u."id", u."login", u."email", u."createdAt", u."hash", 
-c."confirmationCode", c."confirmationExpirationDate", c."isConfirmed",
-r."recoveryCode", r."recoveryExpirationDate",
-b."isBanned", b."banDate", b."banReason"
-FROM "USERS" AS u
-JOIN "USERS_CONFIRMATIONS" AS c
-ON u."id" = c."userId"
-JOIN "USERS_RECOVERY" AS r
-ON u."id" = r."userId"
-JOIN "USERS_GLOBAL_BAN" AS b
-ON u."id" = b."userId"
-WHERE u."id" = $1
+        sqlUserJoinQuery +
+          `
+        WHERE u."id" = $1
     `,
         [id],
       );
       if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
-      return {
-        id: foundUser.id,
-        accountData: {
-          login: foundUser.login,
-          email: foundUser.email,
-          hash: foundUser.hash,
-          createdAt: foundUser.createdAt,
-        },
-        emailConfirmationData: {
-          confirmationCode: foundUser.confirmationCode,
-          expirationDate: foundUser.confirmationExpirationDate,
-          isConfirmed: foundUser.isConfirmed,
-        },
-        recoveryCodeData: {
-          recoveryCode: foundUser.recoveryCode,
-          expirationDate: foundUser.recoveryExpirationDate,
-        },
-        globalBanInfo: {
-          isBanned: foundUser.isBanned,
-          banDate: foundUser.banDate,
-          banReason: foundUser.banReason,
-        },
-      };
+      return this._mapUserSqlJoinedTypeToDbType(foundUser);
     } catch (e) {
       console.log(e);
       return null;
     }
   }
   async createUser(newUser: UserDb): Promise<OutputSuperAdminUserDto> {
+    await this.dataSource.query(
+      `
+INSERT INTO "USERS" 
+("id", "login", "email", "createdAt", "hash")
+VALUES($1, $2, $3, $4, $5)
+    `,
+      [
+        newUser.id,
+        newUser.accountData.login,
+        newUser.accountData.email,
+        newUser.accountData.createdAt,
+        newUser.accountData.hash,
+      ],
+    );
+    await this.dataSource.query(
+      `
+INSERT INTO "USERS_GLOBAL_BAN"
+("userId", "isBanned", "banReason")
+VALUES($1, $2, $3)
+      `,
+      [
+        newUser.id,
+        newUser.globalBanInfo.isBanned,
+        newUser.globalBanInfo.banReason,
+      ],
+    );
+    await this.dataSource.query(
+      `
+INSERT INTO "USERS_CONFIRMATIONS"
+("userId", "confirmationCode", "confirmationExpirationDate", "isConfirmed")
+VALUES($1, $2, $3, $4)
+      `,
+      [
+        newUser.id,
+        newUser.emailConfirmationData.confirmationCode,
+        newUser.emailConfirmationData.expirationDate,
+        newUser.emailConfirmationData.isConfirmed,
+      ],
+    );
+    await this.dataSource.query(
+      `
+INSERT INTO "USERS_RECOVERY"
+("userId", "recoveryCode", "recoveryExpirationDate")
+VALUES($1, $2, $3)
+      `,
+      [
+        newUser.id,
+        newUser.recoveryCodeData.recoveryCode,
+        newUser.recoveryCodeData.expirationDate,
+      ],
+    );
+    const user = await this.getUserById(newUser.id);
     return {
-      id: result._id.toString(),
-      login: result.accountData.login,
-      email: result.accountData.email,
-      createdAt: result.accountData.createdAt,
+      id: user.id,
+      login: user.accountData.login,
+      email: user.accountData.email,
+      createdAt: user.accountData.createdAt,
       banInfo: {
-        isBanned: result.globalBanInfo.isBanned,
+        isBanned: user.globalBanInfo.isBanned,
         banDate: null,
-        banReason: result.globalBanInfo.banReason,
+        banReason: user.globalBanInfo.banReason,
       },
     };
   }
   async deleteUser(id: string): Promise<boolean> {
-    const deleteResult = await this.userModel.deleteOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
-    return deleteResult.deletedCount === 1;
+    try {
+      await this.dataSource.query(
+        `
+DELETE FROM "USERS" AS u
+WHERE u."id" = $1;
+DELETE FROM "USERS_CONFIRMATIONS" AS c
+WHERE u."id" = c."userId"
+DELETE FROM "USERS_RECOVERY" AS r
+WHERE u."id" = r."userId"
+DELETE FROM "USERS_GLOBAL_BAN" AS b
+WHERE u."id" = b."userId"
+        `,
+        [id],
+      );
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
   }
-  async findByLoginOrEmail(loginOrEmail: string): Promise<UserDocument> {
-    return this.userModel
-      .findOne({
-        $or: [
-          { 'accountData.email': loginOrEmail },
-          { 'accountData.login': loginOrEmail },
-        ],
-      })
-      .lean();
+  async findByLoginOrEmail(loginOrEmail: string): Promise<UserDb> {
+    try {
+      const result = await this.dataSource.query(
+        sqlUserJoinQuery +
+          `
+        WHERE u."login" = $1 OR u."email" = $1
+      `,
+        [loginOrEmail],
+      );
+      const foundUser: UserSqlJoinedType = result[0];
+      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async findByConfirmationCode(emailConfirmationCode: string): Promise<UserDb> {
     return this.userModel.findOne({
@@ -168,5 +208,30 @@ WHERE u."id" = $1
     }
     userInstance.save();
     return;
+  }
+  private _mapUserSqlJoinedTypeToDbType(user: UserSqlJoinedType): UserDb {
+    return {
+      id: user.id,
+      accountData: {
+        login: user.login,
+        email: user.email,
+        hash: user.hash,
+        createdAt: user.createdAt,
+      },
+      emailConfirmationData: {
+        confirmationCode: user.confirmationCode,
+        expirationDate: user.confirmationExpirationDate,
+        isConfirmed: user.isConfirmed,
+      },
+      recoveryCodeData: {
+        recoveryCode: user.recoveryCode,
+        expirationDate: user.recoveryExpirationDate,
+      },
+      globalBanInfo: {
+        isBanned: user.isBanned,
+        banDate: user.banDate,
+        banReason: user.banReason,
+      },
+    };
   }
 }

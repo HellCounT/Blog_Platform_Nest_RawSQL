@@ -98,7 +98,7 @@ export class AuthController {
     );
     await this.tokenBanService.banRefreshToken(
       request.cookies.refreshToken,
-      payload.userId,
+      payload.userId.toString(),
     );
     response.clearCookie('refreshToken');
     return;
@@ -118,7 +118,7 @@ export class AuthController {
     if (!user) throw new UnauthorizedException();
     await this.tokenBanService.banRefreshToken(
       request.cookies.refreshToken,
-      user._id,
+      user.id,
     );
     const tokenPair = this.jwtAdapter.getRefreshedTokenPair(
       user,
@@ -192,7 +192,7 @@ export class AuthController {
     return {
       email: user.accountData.email,
       login: user.accountData.login,
-      userId: user._id.toString(),
+      userId: user.id,
     };
   }
 }

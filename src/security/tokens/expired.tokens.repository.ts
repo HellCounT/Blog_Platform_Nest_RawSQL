@@ -4,7 +4,7 @@ import {
   ExpiredToken,
   ExpiredTokenDocument,
 } from './entity/expiredTokenSchema';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class ExpiredTokensRepository {
@@ -12,10 +12,7 @@ export class ExpiredTokensRepository {
     @InjectModel(ExpiredToken.name)
     private expiredTokenModel: Model<ExpiredTokenDocument>,
   ) {}
-  async addTokenToDb(
-    refreshTokenMeta: string,
-    userId: mongoose.Types.ObjectId,
-  ) {
+  async addTokenToDb(refreshTokenMeta: string, userId: string) {
     const expiredToken: ExpiredToken = {
       userId: userId,
       refreshTokenMeta: refreshTokenMeta,

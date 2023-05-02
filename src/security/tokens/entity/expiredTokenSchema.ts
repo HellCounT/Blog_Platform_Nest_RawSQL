@@ -1,4 +1,4 @@
-import mongoose, { HydratedDocument } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export type ExpiredTokenDocument = HydratedDocument<ExpiredToken>;
@@ -6,7 +6,7 @@ export type ExpiredTokenDocument = HydratedDocument<ExpiredToken>;
 @Schema()
 export class ExpiredToken {
   @Prop({ required: true })
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   @Prop({ required: true })
   refreshTokenMeta: string;
 }
