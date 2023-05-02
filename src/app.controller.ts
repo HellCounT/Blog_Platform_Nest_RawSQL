@@ -22,6 +22,8 @@ import {
   UserBannedByBlogger,
   UserBannedByBloggerDocument,
 } from './blogger/users/users-banned-by-blogger/entity/user-banned-by-blogger.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Controller()
 export class AppController {
@@ -39,6 +41,7 @@ export class AppController {
     private expiredTokensModel: Model<ExpiredTokenDocument>,
     @InjectModel(UserBannedByBlogger.name)
     private userBannedByBloggerModel: Model<UserBannedByBloggerDocument>,
+    @InjectDataSource() private dataSource: DataSource,
   ) {}
 
   @Get()
@@ -48,14 +51,20 @@ export class AppController {
   @Delete('testing/all-data')
   @HttpCode(204)
   async deleteAllData() {
-    await this.blogModel.deleteMany({});
-    await this.postModel.deleteMany({});
-    await this.commentModel.deleteMany({});
-    await this.userModel.deleteMany({});
-    await this.likesForPostsModel.deleteMany({});
-    await this.likesForCommentsModel.deleteMany({});
-    await this.expiredTokensModel.deleteMany({});
-    await this.userBannedByBloggerModel.deleteMany({});
+    await Promise.allSettled([
+      this.dataSource.query(`DELETE FROM "USERS"`),
+      this.dataSource.query(`DELETE FROM "USERS_CONFIRMATIONS"`),
+      this.dataSource.query(`DELETE FROM "USERS_RECOVERY"`),
+      this.dataSource.query(`DELETE FROM "USERS_GLOBAL_BAN"`),
+      this.dataSource.query(`DELETE FROM "EXPIRED_TOKENS"`),
+      this.dataSource.query(`DELETE FROM "DEVICES"`),
+      await this.blogModel.deleteMany({}),
+      await this.postModel.deleteMany({}),
+      await this.commentModel.deleteMany({}),
+      await this.likesForPostsModel.deleteMany({}),
+      await this.likesForCommentsModel.deleteMany({}),
+      await this.userBannedByBloggerModel.deleteMany({}),
+    ]);
     return;
   }
 }
