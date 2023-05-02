@@ -1,5 +1,12 @@
+import * as process from 'process';
+
 export type ConfigurationType = {
   MONGO_URL: string;
+  PGHOST: string;
+  PGDATABASE: string;
+  PGUSER: string;
+  PGPASSWORD: string;
+  PGPORT: number;
   PORT: number;
   BASIC_AUTH_LOGIN: string;
   BASIC_AUTH_PASSWORD: string;
@@ -14,6 +21,11 @@ export type ConfigurationType = {
 
 export default (): ConfigurationType => ({
   MONGO_URL: process.env.MONGO_URL || 'mongodb://127.0.0.1:27017',
+  PGHOST: process.env.PGHOST,
+  PGDATABASE: process.env.PGDATABASE,
+  PGUSER: process.env.PGUSER,
+  PGPASSWORD: process.env.PGPASSWORD,
+  PGPORT: parseInt(process.env.PGPORT, 10) || 5432,
   PORT: parseInt(process.env.PORT, 10) || 3000,
   BASIC_AUTH_LOGIN: process.env.BASIC_AUTH_LOGIN,
   BASIC_AUTH_PASSWORD: process.env.BASIC_AUTH_PASSWORD,

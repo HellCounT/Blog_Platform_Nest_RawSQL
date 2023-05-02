@@ -93,6 +93,8 @@ import { UsersBannedByBloggerRepository } from './blogger/users/users-banned-by-
 import { BanUserForBlogUseCase } from './blogger/users/use-cases/ban.user.for.blog.use-case';
 import { BloggerUsersQuery } from './blogger/users/blogger.users.query';
 import { BanBlogUseCase } from './superadmin/blogs/use-cases/ban.blog.use-case';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import process from 'process';
 
 const controllers = [
   AppController,
@@ -181,6 +183,17 @@ const adapters = [JwtAdapter, EmailManager];
   imports: [
     ConfigModule.forRoot({
       load: [configuration],
+    }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.PGPORT, 10) || 5432,
+      username: process.env.PGUSER,
+      password: process.env.PGPASSWORD,
+      database: process.env.PGDATABASE,
+      ssl: true,
+      autoLoadEntities: false,
+      synchronize: false,
     }),
     MongooseModule.forRoot(process.env.MONGO_URL),
     MongooseModule.forFeature([
