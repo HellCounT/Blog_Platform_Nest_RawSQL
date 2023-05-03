@@ -7,7 +7,7 @@ import { TokenBanService } from '../../tokens/token.ban.service';
 export class StartNewSessionCommand {
   constructor(
     public refreshToken: string,
-    public userId: mongoose.Types.ObjectId,
+    public userId: string,
     public deviceId: mongoose.Types.ObjectId,
     public deviceName: string,
     public ip: string,
@@ -27,7 +27,7 @@ export class StartNewSessionUseCase {
     );
     const newSession = new DeviceDb(
       command.deviceId,
-      command.userId,
+      new mongoose.Types.ObjectId(command.userId),
       command.ip,
       command.deviceName,
       command.issueDate,

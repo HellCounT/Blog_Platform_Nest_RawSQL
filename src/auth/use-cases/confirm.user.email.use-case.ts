@@ -21,6 +21,6 @@ export class ConfirmUserEmailUseCase {
       new Date(foundUser.emailConfirmationData.expirationDate) < new Date()
     )
       throw new BadRequestException();
-    return await this.usersRepo.confirmationSetUser(foundUser._id.toString());
+    return await this.usersRepo.confirmationSetUser(foundUser.id.toString());
   }
 }

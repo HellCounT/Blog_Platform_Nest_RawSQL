@@ -3,7 +3,6 @@ import { CommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../users/users.repository';
 import { EmailManager } from '../../email/email-manager';
 import { UserDb, UserViewModelType } from '../../users/types/users.types';
-import mongoose from 'mongoose';
 import add from 'date-fns/add';
 import { ServiceUnavailableException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
@@ -27,7 +26,7 @@ export class RegisterUserUseCase {
     );
     const currentDate = new Date();
     const newUser = new UserDb(
-      new mongoose.Types.ObjectId(),
+      uuidv4(),
       {
         login: command.registrationUserDto.login,
         email: command.registrationUserDto.email,

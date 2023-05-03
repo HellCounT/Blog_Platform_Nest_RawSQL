@@ -34,7 +34,7 @@ export class GuestGuard implements CanActivate {
     const user = await this.usersQueryRepo.findUserById(
       payload.userId.toString(),
     );
-    request.user = { userId: user._id.toString() };
+    request.user = { userId: user.id };
     return true;
   }
 }

@@ -30,7 +30,7 @@ export class JwtAdapter {
   }
   createJwt(user: UserDb): string {
     return this.jwtService.sign(
-      { userId: user._id },
+      { userId: user.id },
       {
         secret: this.configService.get('JWT_SECRET'),
         expiresIn: this.configService.get('JWT_LIFETIME') + 's',
@@ -46,7 +46,7 @@ export class JwtAdapter {
     const expDate = new Date(expDateSec * 1000);
     const refreshToken = this.jwtService.sign(
       {
-        userId: user._id,
+        userId: user.id,
         deviceId: deviceId.toString(),
         exp: expDateSec,
       },
@@ -56,7 +56,7 @@ export class JwtAdapter {
     );
     return {
       refreshToken: refreshToken,
-      userId: user._id,
+      userId: user.id,
       deviceId: deviceId,
       issueDate: issueDate,
       expDate: expDate,
@@ -70,7 +70,7 @@ export class JwtAdapter {
     const expDate = new Date(expDateSec * 1000);
     const refreshToken = this.jwtService.sign(
       {
-        userId: user._id,
+        userId: user.id,
         deviceId: deviceId.toString(),
         exp: expDateSec,
       },
@@ -80,7 +80,7 @@ export class JwtAdapter {
     );
     return {
       refreshToken: refreshToken,
-      userId: user._id,
+      userId: user.id,
       deviceId: deviceId,
       issueDate: issueDate,
       expDate: expDate,

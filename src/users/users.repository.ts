@@ -125,6 +125,7 @@ WHERE u."id" = b."userId"
       `,
         [loginOrEmail],
       );
+      if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
       return this._mapUserSqlJoinedTypeToDbType(foundUser);
     } catch (e) {
@@ -149,11 +150,10 @@ WHERE u."id" = b."userId"
     userInstance.save();
     return true;
   }
-  async updateConfirmationCode(
-    id: mongoose.Types.ObjectId,
-    newCode: string,
-  ): Promise<void> {
-    const userInstance = await this.userModel.findOne({ _id: id });
+  async updateConfirmationCode(id: string, newCode: string): Promise<void> {
+    const userInstance = await this.userModel.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+    });
     if (!userInstance) {
       return;
     } else {
@@ -162,11 +162,10 @@ WHERE u."id" = b."userId"
       return;
     }
   }
-  async updateRecoveryCode(
-    id: mongoose.Types.ObjectId,
-    newRecoveryCode: string,
-  ): Promise<void> {
-    const userInstance = await this.userModel.findOne({ _id: id });
+  async updateRecoveryCode(id: string, newRecoveryCode: string): Promise<void> {
+    const userInstance = await this.userModel.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+    });
     if (!userInstance) {
       return;
     } else {
@@ -176,11 +175,10 @@ WHERE u."id" = b."userId"
       return;
     }
   }
-  async updateHashByRecoveryCode(
-    id: mongoose.Types.ObjectId,
-    newHash: string,
-  ): Promise<void> {
-    const userInstance = await this.userModel.findOne({ _id: id });
+  async updateHashByRecoveryCode(id: string, newHash: string): Promise<void> {
+    const userInstance = await this.userModel.findOne({
+      _id: new mongoose.Types.ObjectId(id),
+    });
     if (!userInstance) {
       return;
     } else {

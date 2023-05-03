@@ -23,7 +23,7 @@ export class SendPasswordRecoveryCodeUseCase {
       command.passwordRecoveryDto.email,
     );
     if (!foundUser) throw new BadRequestException();
-    await this.usersRepo.updateRecoveryCode(foundUser._id, newCode);
+    await this.usersRepo.updateRecoveryCode(foundUser.id, newCode);
     try {
       await this.emailManager.sendRecoveryCode(
         command.passwordRecoveryDto.email,

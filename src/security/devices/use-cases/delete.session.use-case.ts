@@ -4,10 +4,7 @@ import mongoose from 'mongoose';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 export class DeleteSessionCommand {
-  constructor(
-    public userId: mongoose.Types.ObjectId,
-    public deviceId: string,
-  ) {}
+  constructor(public userId: string, public deviceId: string) {}
 }
 @CommandHandler(DeleteSessionCommand)
 export class DeleteSessionUseCase {

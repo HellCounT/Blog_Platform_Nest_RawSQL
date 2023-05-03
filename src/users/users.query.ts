@@ -22,7 +22,7 @@ export class UsersQuery {
     });
   }
   async getAllSessionsForCurrentUser(
-    userId: mongoose.Types.ObjectId,
+    userId: string,
   ): Promise<Array<OutputDeviceDto>> {
     const sessions: Array<DeviceDocument> = await this.deviceModel
       .find({ userId: new mongoose.Types.ObjectId(userId) })

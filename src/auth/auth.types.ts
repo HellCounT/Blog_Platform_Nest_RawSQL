@@ -7,14 +7,14 @@ export type TokenPairType = {
 
 export type RefreshTokenResult = {
   refreshToken: string;
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   deviceId: mongoose.Types.ObjectId;
   issueDate: Date;
   expDate: Date;
 };
 
 export type TokenPayloadType = {
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   deviceId?: string;
   exp?: number;
 };

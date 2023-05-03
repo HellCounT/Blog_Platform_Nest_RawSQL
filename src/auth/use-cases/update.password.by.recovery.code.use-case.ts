@@ -30,7 +30,7 @@ export class UpdatePasswordByRecoveryCodeUseCase {
         command.newPasswordDto.newPassword,
       );
       await this.usersRepo.updateHashByRecoveryCode(
-        foundUser._id,
+        foundUser.id,
         newPasswordHash,
       );
       return true;

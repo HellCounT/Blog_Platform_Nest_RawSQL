@@ -1,9 +1,9 @@
 import { InputCreateUserDto } from '../dto/input.create-user.dto';
 import { UsersRepository } from '../../../users/users.repository';
 import { UserDb, UserViewModelType } from '../../../users/types/users.types';
-import mongoose from 'mongoose';
 import { CommandHandler } from '@nestjs/cqrs';
 import { generateHash } from '../../../application-helpers/generate.hash';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateUserCommand {
   constructor(public userCreateDto: InputCreateUserDto) {}
@@ -17,7 +17,7 @@ export class CreateUserUseCase {
     const passwordHash = await generateHash(command.userCreateDto.password);
     const currentDate = new Date();
     const newUser = new UserDb(
-      new mongoose.Types.ObjectId(),
+      uuidv4(),
       {
         login: command.userCreateDto.login,
         email: command.userCreateDto.email,

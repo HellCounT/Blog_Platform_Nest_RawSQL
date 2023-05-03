@@ -4,10 +4,7 @@ import { UnauthorizedException } from '@nestjs/common';
 import { DevicesRepository } from '../devices.repository';
 
 export class DeleteAllOtherSessionsCommand {
-  constructor(
-    public userId: mongoose.Types.ObjectId,
-    public deviceId: string,
-  ) {}
+  constructor(public userId: string, public deviceId: string) {}
 }
 @CommandHandler(DeleteAllOtherSessionsCommand)
 export class DeleteAllOtherSessionsUseCase {

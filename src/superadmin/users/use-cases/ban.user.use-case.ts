@@ -9,7 +9,6 @@ import { DevicesRepository } from '../../../security/devices/devices.repository'
 import { InputBanUserDto } from '../dto/input.ban-user.dto';
 import { NotFoundException } from '@nestjs/common';
 import { ExpiredTokensRepository } from '../../../security/tokens/expired.tokens.repository';
-import mongoose from 'mongoose';
 import { LikeForPostDocument } from '../../../likes/entity/likes-for-post.schema';
 import { LikeForCommentDocument } from '../../../likes/entity/likes-for-comments.schema';
 
@@ -105,7 +104,7 @@ export class BanUserUseCase {
     for (let i = 0; i < sessions.length; i++) {
       await this.expiredTokensRepo.addTokenToDb(
         sessions[i].refreshTokenMeta,
-        new mongoose.Types.ObjectId(userId),
+        userId,
       );
     }
     await this.devicesRepo.killAllSessionsForUser(userId);

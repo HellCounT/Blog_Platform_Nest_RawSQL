@@ -25,7 +25,7 @@ export class ResendActivationCodeUseCase {
     if (!foundUser || foundUser.emailConfirmationData.isConfirmed)
       throw new BadRequestException('eMail is already confirmed');
     const newCode = uuidv4();
-    await this.usersRepo.updateConfirmationCode(foundUser._id, newCode);
+    await this.usersRepo.updateConfirmationCode(foundUser.id, newCode);
     try {
       await this.emailManager.resendEmailRegistrationCode(
         foundUser.accountData.email,

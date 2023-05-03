@@ -53,11 +53,11 @@ export class AppController {
   async deleteAllData() {
     await Promise.allSettled([
       this.dataSource.query(`DELETE FROM "USERS"`),
-      this.dataSource.query(`DELETE FROM "USERS_CONFIRMATIONS"`),
-      this.dataSource.query(`DELETE FROM "USERS_RECOVERY"`),
-      this.dataSource.query(`DELETE FROM "USERS_GLOBAL_BAN"`),
-      this.dataSource.query(`DELETE FROM "EXPIRED_TOKENS"`),
-      this.dataSource.query(`DELETE FROM "DEVICES"`),
+      // this.dataSource.query(`DELETE FROM "USERS_CONFIRMATIONS"`),
+      // this.dataSource.query(`DELETE FROM "USERS_RECOVERY"`),
+      // this.dataSource.query(`DELETE FROM "USERS_GLOBAL_BAN"`),
+      // this.dataSource.query(`DELETE FROM "EXPIRED_TOKENS"`),
+      // this.dataSource.query(`DELETE FROM "DEVICES"`),
       await this.blogModel.deleteMany({}),
       await this.postModel.deleteMany({}),
       await this.commentModel.deleteMany({}),
@@ -65,6 +65,7 @@ export class AppController {
       await this.likesForCommentsModel.deleteMany({}),
       await this.userBannedByBloggerModel.deleteMany({}),
     ]);
+
     return;
   }
 }
