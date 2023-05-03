@@ -102,12 +102,6 @@ VALUES($1, $2, $3)
         `
 DELETE FROM "USERS" AS u
 WHERE u."id" = $1;
-DELETE FROM "USERS_CONFIRMATIONS" AS c
-WHERE u."id" = c."userId"
-DELETE FROM "USERS_RECOVERY" AS r
-WHERE u."id" = r."userId"
-DELETE FROM "USERS_GLOBAL_BAN" AS b
-WHERE u."id" = b."userId"
         `,
         [id],
       );
