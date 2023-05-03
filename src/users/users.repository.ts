@@ -161,47 +161,84 @@ WHERE u."id" = $1;
       return;
     }
   }
-  async confirmationSetUser(id: string): Promise<boolean> {
-    const userInstance = await this.userModel.findOne({ _id: id });
-    if (!userInstance) return false;
-    userInstance.emailConfirmationData.isConfirmed = true;
-    userInstance.save();
+  async confirmationSetUser(userId: string): Promise<boolean> {
+    try {
+      await this.dataSource.query(
+        `
+UPDATE "USERS"
+SET "isConfirmed" = true
+WHERE "userId" = $1
+      `,
+        [userId],
+      );
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
     return true;
   }
-  async updateConfirmationCode(id: string, newCode: string): Promise<void> {
-    const userInstance = await this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
-    if (!userInstance) {
+  async updateConfirmationCode(userId: string, newCode: string): Promise<void> {
+    const userSearchResult = await this.dataSource.query(
+      `
+SELECT * FROM "USERS"
+WHERE "id" = $1
+    `,
+      [userId],
+    );
+    if (userSearchResult.length < 1) {
       return;
     } else {
-      userInstance.emailConfirmationData.confirmationCode = newCode;
-      await userInstance.save();
-      return;
+      await this.dataSource.query(
+        `
+UPDATE "USERS_CONFIRMATIONS"
+SET "confirmationCode" = $1
+WHERE "userId" = $2
+      `,
+        [newCode, userId],
+      );
     }
   }
   async updateRecoveryCode(id: string, newRecoveryCode: string): Promise<void> {
-    const userInstance = await this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
-    if (!userInstance) {
+    const userSearchResult = await this.dataSource.query(
+      `
+SELECT * FROM "USERS"
+WHERE "id" = $1
+    `,
+      [id],
+    );
+    if (userSearchResult.length < 1) {
       return;
     } else {
-      userInstance.recoveryCodeData.recoveryCode = newRecoveryCode;
-      userInstance.recoveryCodeData.expirationDate = new Date();
-      await userInstance.save();
+      await this.dataSource.query(
+        `
+UPDATE "USERS_RECOVERY"
+SET "recoveryCode" = $1 AND "recoveryExpirationDate" = $2
+WHERE "userId" = $3
+      `,
+        [newRecoveryCode, new Date(), id],
+      );
       return;
     }
   }
   async updateHashByRecoveryCode(id: string, newHash: string): Promise<void> {
-    const userInstance = await this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
-    if (!userInstance) {
+    const userSearchResult = await this.dataSource.query(
+      `
+SELECT * FROM "USERS"
+WHERE "id" = $1
+    `,
+      [id],
+    );
+    if (userSearchResult.length < 1) {
       return;
     } else {
-      userInstance.accountData.hash = newHash;
-      await userInstance.save();
+      await this.dataSource.query(
+        `
+UPDATE "USERS"
+SET "hash" = $1
+WHERE "id" = $2
+      `,
+        [newHash, id],
+      );
       return;
     }
   }
