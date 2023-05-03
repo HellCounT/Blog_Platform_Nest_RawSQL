@@ -128,14 +128,38 @@ WHERE u."id" = $1;
     }
   }
   async findByConfirmationCode(emailConfirmationCode: string): Promise<UserDb> {
-    return this.userModel.findOne({
-      'emailConfirmationData.confirmationCode': emailConfirmationCode,
-    });
+    try {
+      const result = await this.dataSource.query(
+        sqlUserJoinQuery +
+          `
+        WHERE c."confirmationCode" = $1
+      `,
+        [emailConfirmationCode],
+      );
+      if (result.length < 1) return null;
+      const foundUser: UserSqlJoinedType = result[0];
+      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async findByRecoveryCode(recoveryCode: string): Promise<UserDb> {
-    return this.userModel.findOne({
-      'recoveryCodeData.recoveryCode': recoveryCode,
-    });
+    try {
+      const result = await this.dataSource.query(
+        sqlUserJoinQuery +
+          `
+        WHERE r."recoveryCode" = $1
+      `,
+        [recoveryCode],
+      );
+      if (result.length < 1) return null;
+      const foundUser: UserSqlJoinedType = result[0];
+      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async confirmationSetUser(id: string): Promise<boolean> {
     const userInstance = await this.userModel.findOne({ _id: id });
