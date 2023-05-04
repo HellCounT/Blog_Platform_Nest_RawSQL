@@ -6,9 +6,9 @@ import {
   TokenPairType,
   TokenPayloadType,
 } from './auth.types';
-import mongoose from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { ConfigurationType } from '../configuration/configuration';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class JwtAdapter {
@@ -22,7 +22,7 @@ export class JwtAdapter {
       refreshTokenMeta: this.createNewRefreshJwt(user),
     };
   }
-  getRefreshedTokenPair(user: UserDb, deviceId: mongoose.Types.ObjectId) {
+  getRefreshedTokenPair(user: UserDb, deviceId: string) {
     return {
       accessToken: this.createJwt(user),
       refreshTokenMeta: this.updateRefreshJwt(user, deviceId),
@@ -38,7 +38,7 @@ export class JwtAdapter {
     );
   }
   createNewRefreshJwt(user: UserDb): RefreshTokenResult {
-    const deviceId = new mongoose.Types.ObjectId();
+    const deviceId = uuidv4;
     const issueDate = new Date();
     const expDateSec =
       Math.floor(issueDate.getTime() / 1000) +
@@ -62,7 +62,7 @@ export class JwtAdapter {
       expDate: expDate,
     };
   }
-  updateRefreshJwt(user: UserDb, deviceId: mongoose.Types.ObjectId) {
+  updateRefreshJwt(user: UserDb, deviceId: string) {
     const issueDate = new Date();
     const expDateSec =
       Math.floor(issueDate.getTime() / 1000) +

@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { DevicesRepository } from '../../security/devices/devices.repository';
-import mongoose from 'mongoose';
 import { JwtAdapter } from '../jwt.adapter';
 import { TokenPayloadType } from '../auth.types';
 import { TokenBanService } from '../../security/tokens/token.ban.service';
@@ -34,11 +33,7 @@ export class RefreshJwtGuard implements CanActivate {
   ): Promise<TokenPayloadType> {
     if (!this.jwtAdapter.checkRefreshTokenExpiration(refreshToken)) return null;
     const payload = this.jwtAdapter.parseTokenPayload(refreshToken);
-    if (
-      !(await this.devicesRepo.findSessionByDeviceId(
-        new mongoose.Types.ObjectId(payload.deviceId),
-      ))
-    )
+    if (!(await this.devicesRepo.findSessionByDeviceId(payload.deviceId)))
       return null;
     return payload;
   }

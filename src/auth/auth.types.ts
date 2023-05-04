@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-
 export type TokenPairType = {
   accessToken: string;
   refreshTokenMeta: RefreshTokenResult;
@@ -8,7 +6,7 @@ export type TokenPairType = {
 export type RefreshTokenResult = {
   refreshToken: string;
   userId: string;
-  deviceId: mongoose.Types.ObjectId;
+  deviceId: string;
   issueDate: Date;
   expDate: Date;
 };

@@ -27,7 +27,6 @@ import { InputConfirmationCodeDto } from './dto/input.confirmationcode.dto';
 import { InputEmailDto } from './dto/input.email.dto';
 import { OutputUserMeDto } from './dto/output.user.me.dto';
 import { OutputAccessTokenDto } from './dto/output.token.dto';
-import mongoose from 'mongoose';
 import { CommandBus } from '@nestjs/cqrs';
 import { RegisterUserCommand } from './use-cases/register.user.use-case';
 import { ConfirmUserEmailCommand } from './use-cases/confirm.user.email.use-case';
@@ -122,7 +121,7 @@ export class AuthController {
     );
     const tokenPair = this.jwtAdapter.getRefreshedTokenPair(
       user,
-      new mongoose.Types.ObjectId(payload.deviceId),
+      payload.deviceId,
     );
     await this.commandBus.execute(
       new UpdateSessionWithDeviceIdCommand(
