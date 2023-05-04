@@ -1,14 +1,13 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { DevicesRepository } from '../devices.repository';
 import { DeviceDb } from '../types/devices.types';
-import mongoose from 'mongoose';
 import { TokenBanService } from '../../tokens/token.ban.service';
 
 export class StartNewSessionCommand {
   constructor(
     public refreshToken: string,
     public userId: string,
-    public deviceId: mongoose.Types.ObjectId,
+    public deviceId: string,
     public deviceName: string,
     public ip: string,
     public issueDate: Date,
@@ -27,7 +26,7 @@ export class StartNewSessionUseCase {
     );
     const newSession = new DeviceDb(
       command.deviceId,
-      new mongoose.Types.ObjectId(command.userId),
+      command.userId,
       command.ip,
       command.deviceName,
       command.issueDate,

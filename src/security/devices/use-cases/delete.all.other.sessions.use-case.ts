@@ -1,5 +1,4 @@
 import { CommandHandler } from '@nestjs/cqrs';
-import mongoose from 'mongoose';
 import { UnauthorizedException } from '@nestjs/common';
 import { DevicesRepository } from '../devices.repository';
 
@@ -12,8 +11,8 @@ export class DeleteAllOtherSessionsUseCase {
   async execute(command: DeleteAllOtherSessionsCommand): Promise<boolean> {
     if (command.deviceId) {
       await this.devicesRepo.deleteAllOtherSessions(
-        new mongoose.Types.ObjectId(command.userId),
-        new mongoose.Types.ObjectId(command.deviceId),
+        command.userId,
+        command.deviceId,
       );
       return true;
     } else throw new UnauthorizedException();
