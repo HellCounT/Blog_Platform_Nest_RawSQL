@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { UserDb, UserSqlJoinedType } from './types/users.types';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './entity/users.schema';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -10,10 +7,7 @@ import { sqlUserJoinQuery } from '../application-helpers/sql.user.join.query';
 
 @Injectable()
 export class UsersRepository {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getUserById(id: string): Promise<UserDb> {
     try {
       const result = await this.dataSource.query(
