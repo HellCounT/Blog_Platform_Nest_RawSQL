@@ -1,6 +1,3 @@
-import { InjectModel } from '@nestjs/mongoose';
-import { Device, DeviceDocument } from './entity/devices.schema';
-import mongoose, { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
 import { DeviceDb } from './types/devices.types';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -8,10 +5,7 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class DevicesRepository {
-  constructor(
-    @InjectModel(Device.name) private deviceModel: Model<DeviceDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async findSessionByDeviceId(deviceId: string): Promise<DeviceDb> {
     try {
       const result = await this.dataSource.query(
@@ -80,8 +74,9 @@ WHERE "id" = $1
           `
 UPDATE "DEVICES"
 SET "issuedAt" = $1 AND "expirationDate" = $2 AND "refreshTokenMeta" = $3
+WHERE "id" = $4
           `,
-          [issueDate, expDate, newRefreshTokenMeta],
+          [issueDate, expDate, newRefreshTokenMeta, deviceId],
         );
         return true;
       } else return false;
@@ -90,28 +85,51 @@ SET "issuedAt" = $1 AND "expirationDate" = $2 AND "refreshTokenMeta" = $3
       return false;
     }
   }
-  async deleteSessionById(deviceId: mongoose.Types.ObjectId): Promise<boolean> {
-    const activeSessionInstance = await this.deviceModel.findOne({
-      _id: new mongoose.Types.ObjectId(deviceId),
-    });
-    if (!activeSessionInstance) return false;
-    await activeSessionInstance.deleteOne();
-    return true;
+  async deleteSessionById(deviceId: string): Promise<boolean> {
+    try {
+      const activeSessionResult = await this.dataSource.query(
+        `
+SELECT * FROM "DEVICES"
+WHERE "id" = $1
+      `,
+        [deviceId],
+      );
+      if (activeSessionResult.length > 0) {
+        await this.dataSource.query(
+          `
+DELETE FROM "DEVICES"
+WHERE "id" = $1
+          `,
+          [deviceId],
+        );
+        return true;
+      } else return false;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
   }
   async deleteAllOtherSessions(
-    userId: mongoose.Types.ObjectId,
-    deviceId: mongoose.Types.ObjectId,
-  ): Promise<boolean> {
-    const result = await this.deviceModel.deleteMany({
-      userId: userId,
-      _id: { $ne: deviceId },
-    });
-    return result.deletedCount >= 1;
+    userId: string,
+    deviceId: string,
+  ): Promise<void> {
+    await this.dataSource.query(
+      `
+DELETE FROM "DEVICES"
+WHERE "userId" = $1 AND "id" != $2
+          `,
+      [userId, deviceId],
+    );
+    return;
   }
   async killAllSessionsForUser(userId: string): Promise<void> {
-    await this.deviceModel.deleteMany({
-      userId: new mongoose.Types.ObjectId(userId),
-    });
+    await this.dataSource.query(
+      `
+DELETE FROM "DEVICES"
+WHERE "userId" = $1
+          `,
+      [userId],
+    );
     return;
   }
 }
