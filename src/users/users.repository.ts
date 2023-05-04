@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { UserDb, UserSqlJoinedType } from './types/users.types';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './entity/users.schema';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
@@ -247,19 +247,25 @@ WHERE "id" = $2
     isBanned: boolean,
     banReason: string,
   ): Promise<void> {
-    const userInstance = await this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(userId),
-    });
     if (isBanned) {
-      userInstance.globalBanInfo.isBanned = isBanned;
-      userInstance.globalBanInfo.banDate = new Date();
-      userInstance.globalBanInfo.banReason = banReason;
+      await this.dataSource.query(
+        `
+UPDATE "USERS_GLOBAL_BAN"
+SET "isBanned" = $1 AND "banDate" = $2 AND "banReason" = $3
+WHERE "userId" = $3
+        `,
+        [isBanned, new Date(), banReason, userId],
+      );
     } else {
-      userInstance.globalBanInfo.isBanned = isBanned;
-      userInstance.globalBanInfo.banDate = null;
-      userInstance.globalBanInfo.banReason = null;
+      await this.dataSource.query(
+        `
+UPDATE "USERS_GLOBAL_BAN"
+SET "isBanned" = $1 AND "banDate" = null AND "banReason" = null
+WHERE "userId" = $2
+        `,
+        [isBanned, userId],
+      );
     }
-    userInstance.save();
     return;
   }
   private _mapUserSqlJoinedTypeToDbType(user: UserSqlJoinedType): UserDb {
