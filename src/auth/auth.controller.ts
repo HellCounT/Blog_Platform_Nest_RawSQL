@@ -52,7 +52,7 @@ export class AuthController {
     protected jwtAdapter: JwtAdapter,
     protected commandBus: CommandBus,
   ) {}
-  //@UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('login')
   @HttpCode(200)
   async login(
@@ -138,7 +138,7 @@ export class AuthController {
     );
     return { accessToken: tokenPair.accessToken };
   }
-  //@UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('registration')
   @HttpCode(204)
   async registerUser(@Body() registrationUserDto: InputRegistrationUserDto) {
@@ -146,7 +146,7 @@ export class AuthController {
       new RegisterUserCommand(registrationUserDto),
     );
   }
-  //@UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('registration-confirmation')
   @HttpCode(204)
   async confirmUserEmail(
@@ -156,7 +156,7 @@ export class AuthController {
       new ConfirmUserEmailCommand(confirmationCodeDto),
     );
   }
-  //@UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('registration-email-resending')
   @HttpCode(204)
   async resendActivationCode(@Body() emailDto: InputEmailDto) {
@@ -164,7 +164,7 @@ export class AuthController {
       new ResendActivationCodeCommand(emailDto),
     );
   }
-  //@UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard)
   @Post('password-recovery')
   @HttpCode(204)
   async passwordRecovery(
