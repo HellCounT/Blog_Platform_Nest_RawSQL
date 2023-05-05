@@ -15,7 +15,7 @@ import { DataSource } from 'typeorm';
 export class SuperAdminUsersQuery {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async viewAllUsers(q: UserQueryParser): Promise<UserPaginatorType> {
-    const allUsersCount = await this.dataSource.query(
+    const allUsersCountResult = await this.dataSource.query(
       `
 SELECT COUNT(*)
 FROM "USERS" as u
@@ -29,6 +29,7 @@ WHERE ${this._getBanStatusForQuery(q.banStatus)} (
       `,
       [q.searchLoginTerm, q.searchEmailTerm],
     );
+    const allUsersCount = allUsersCountResult[0].count;
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageUsers: UserAndBanInfoSqlType[] = await this.dataSource.query(
       `
