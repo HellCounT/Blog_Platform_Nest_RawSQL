@@ -38,7 +38,7 @@ export class JwtAdapter {
     );
   }
   createNewRefreshJwt(user: UserQueryType): RefreshTokenResult {
-    const deviceId = uuidv4;
+    const deviceId = uuidv4();
     const issueDate = new Date();
     const expDateSec =
       Math.floor(issueDate.getTime() / 1000) +
