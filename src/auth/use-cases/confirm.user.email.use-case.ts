@@ -14,10 +14,6 @@ export class ConfirmUserEmailUseCase {
       command.confirmationCodeDto.code,
     );
     if (!foundUser) new BadRequestException();
-    console.log(
-      'confirmationInfo:',
-      foundUser.emailConfirmationData.isConfirmed,
-    );
     if (
       foundUser.emailConfirmationData.isConfirmed ||
       foundUser.emailConfirmationData.confirmationCode !==

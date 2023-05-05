@@ -30,8 +30,8 @@ WHERE u."id" = $1
   ): Promise<Array<OutputDeviceDto>> {
     const sessions: Array<DeviceDb> = await this.dataSource.query(
       `
-      SELECT * FROM "DEVICES"
-      WHERE "userId" = $1
+SELECT * FROM "DEVICES"
+WHERE "userId" = $1
       `,
       [userId],
     );
