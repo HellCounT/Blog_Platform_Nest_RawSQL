@@ -99,6 +99,7 @@ WHERE u."id" = $1;
         `,
         [id],
       );
+      return true;
     } catch (e) {
       console.log(e);
       return false;
