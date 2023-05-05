@@ -114,7 +114,6 @@ export class AuthController {
     const user = await this.usersQueryRepo.findUserById(
       payload.userId.toString(),
     );
-    console.log('User in updateRefreshToken: ', user);
     if (!user) throw new UnauthorizedException();
     await this.tokenBanService.banRefreshToken(
       request.cookies.refreshToken,
