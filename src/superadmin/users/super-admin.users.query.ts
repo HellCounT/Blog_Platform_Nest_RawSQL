@@ -29,7 +29,7 @@ WHERE ${this._getBanStatusForQuery(q.banStatus)} (
       `,
       [q.searchLoginTerm, q.searchEmailTerm],
     );
-    const allUsersCount = allUsersCountResult[0].count;
+    const allUsersCount = +allUsersCountResult[0].count;
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageUsers: UserAndBanInfoSqlType[] = await this.dataSource.query(
       `
