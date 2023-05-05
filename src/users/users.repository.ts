@@ -160,14 +160,13 @@ WHERE u."id" = $1;
     try {
       await this.dataSource.query(
         `
-UPDATE "USERS"
+UPDATE "USERS_CONFIRMATIONS"
 SET "isConfirmed" = true
 WHERE "userId" = $1
       `,
         [userId],
       );
     } catch (e) {
-      console.log(e);
       return false;
     }
     return true;
