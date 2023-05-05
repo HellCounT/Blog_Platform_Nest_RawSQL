@@ -92,14 +92,14 @@ VALUES ($1, $2, $3)
   }
   async deleteUser(id: string): Promise<boolean> {
     try {
-      await this.dataSource.query(
+      const result = await this.dataSource.query(
         `
 DELETE FROM "USERS" AS u
 WHERE u."id" = $1;
         `,
         [id],
       );
-      return true;
+      return result[1] > 0;
     } catch (e) {
       console.log(e);
       return false;
