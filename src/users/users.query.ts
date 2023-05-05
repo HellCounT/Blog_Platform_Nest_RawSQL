@@ -14,7 +14,7 @@ export class UsersQuery {
       const result = await this.dataSource.query(
         `
 SELECT * FROM "USERS"
-WHERE u."id" = $1
+WHERE "id" = $1
         `,
         [userId],
       );
