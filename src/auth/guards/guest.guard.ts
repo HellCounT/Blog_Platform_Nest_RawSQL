@@ -1,12 +1,12 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtAdapter } from '../jwt.adapter';
-import { UsersQuery } from '../../users/users.query';
+import { UsersRepository } from '../../users/users.repository';
 
 @Injectable()
 export class GuestGuard implements CanActivate {
   constructor(
-    private readonly usersQueryRepo: UsersQuery,
     private readonly jwtAdapter: JwtAdapter,
+    private readonly usersRepo: UsersRepository,
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -31,9 +31,7 @@ export class GuestGuard implements CanActivate {
       };
       return true;
     }
-    const user = await this.usersQueryRepo.findUserById(
-      payload.userId.toString(),
-    );
+    const user = await this.usersRepo.getUserById(payload.userId);
     request.user = { userId: user.id };
     return true;
   }

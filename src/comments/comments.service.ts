@@ -41,8 +41,8 @@ export class CommentsService {
       new mongoose.Types.ObjectId(),
       content,
       {
-        userId: userId.toString(),
-        userLogin: foundUser.accountData.login,
+        userId: userId,
+        userLogin: foundUser.login,
         isBanned: false,
       },
       postId,

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { UserDb } from '../users/types/users.types';
+import { UserQueryType } from '../users/types/users.types';
 import {
   RefreshTokenResult,
   TokenPairType,
@@ -16,19 +16,19 @@ export class JwtAdapter {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<ConfigurationType>,
   ) {}
-  getTokenPair(user: UserDb): TokenPairType {
+  getTokenPair(user: UserQueryType): TokenPairType {
     return {
       accessToken: this.createJwt(user),
       refreshTokenMeta: this.createNewRefreshJwt(user),
     };
   }
-  getRefreshedTokenPair(user: UserDb, deviceId: string) {
+  getRefreshedTokenPair(user: UserQueryType, deviceId: string) {
     return {
       accessToken: this.createJwt(user),
       refreshTokenMeta: this.updateRefreshJwt(user, deviceId),
     };
   }
-  createJwt(user: UserDb): string {
+  createJwt(user: UserQueryType): string {
     return this.jwtService.sign(
       { userId: user.id },
       {
@@ -37,7 +37,7 @@ export class JwtAdapter {
       },
     );
   }
-  createNewRefreshJwt(user: UserDb): RefreshTokenResult {
+  createNewRefreshJwt(user: UserQueryType): RefreshTokenResult {
     const deviceId = uuidv4;
     const issueDate = new Date();
     const expDateSec =
@@ -62,7 +62,7 @@ export class JwtAdapter {
       expDate: expDate,
     };
   }
-  updateRefreshJwt(user: UserDb, deviceId: string) {
+  updateRefreshJwt(user: UserQueryType, deviceId: string) {
     const issueDate = new Date();
     const expDateSec =
       Math.floor(issueDate.getTime() / 1000) +
@@ -71,7 +71,7 @@ export class JwtAdapter {
     const refreshToken = this.jwtService.sign(
       {
         userId: user.id,
-        deviceId: deviceId.toString(),
+        deviceId: deviceId,
         exp: expDateSec,
       },
       {

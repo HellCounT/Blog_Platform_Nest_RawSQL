@@ -30,7 +30,7 @@ export class UsersRepository {
       `
 INSERT INTO "USERS" 
 ("id", "login", "email", "createdAt", "hash")
-VALUES($1, $2, $3, $4, $5)
+VALUES ($1, $2, $3, $4, $5)
     `,
       [
         newUser.id,
@@ -44,7 +44,7 @@ VALUES($1, $2, $3, $4, $5)
       `
 INSERT INTO "USERS_GLOBAL_BAN"
 ("userId", "isBanned", "banReason")
-VALUES($1, $2, $3)
+VALUES ($1, $2, $3)
       `,
       [
         newUser.id,
@@ -56,7 +56,7 @@ VALUES($1, $2, $3)
       `
 INSERT INTO "USERS_CONFIRMATIONS"
 ("userId", "confirmationCode", "confirmationExpirationDate", "isConfirmed")
-VALUES($1, $2, $3, $4)
+VALUES ($1, $2, $3, $4)
       `,
       [
         newUser.id,
@@ -69,7 +69,7 @@ VALUES($1, $2, $3, $4)
       `
 INSERT INTO "USERS_RECOVERY"
 ("userId", "recoveryCode", "recoveryExpirationDate")
-VALUES($1, $2, $3)
+VALUES ($1, $2, $3)
       `,
       [
         newUser.id,

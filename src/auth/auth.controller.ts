@@ -189,8 +189,8 @@ export class AuthController {
     const user = await this.usersQueryRepo.findUserById(req.user.userId);
     if (!user) throw new UnauthorizedException();
     return {
-      email: user.accountData.email,
-      login: user.accountData.login,
+      email: user.email,
+      login: user.login,
       userId: user.id,
     };
   }

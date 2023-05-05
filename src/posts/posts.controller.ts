@@ -23,8 +23,8 @@ import { InputCommentDto } from '../comments/dto/input-comment.dto';
 import { CommentsService } from '../comments/comments.service';
 import { CommentPaginatorDto } from '../comments/dto/output.comment-paginator.dto';
 import { InputLikeStatusDto } from '../likes/dto/input.like-status.dto';
-import { UsersQuery } from '../users/users.query';
 import { GuestGuard } from '../auth/guards/guest.guard';
+import { UsersRepository } from '../users/users.repository';
 
 @Controller('posts')
 export class PostsController {
@@ -33,7 +33,7 @@ export class PostsController {
     protected readonly postsQueryRepo: PostsQuery,
     protected commentsService: CommentsService,
     protected readonly commentsQueryRepo: CommentsQuery,
-    protected readonly usersQueryRepo: UsersQuery,
+    protected readonly usersRepo: UsersRepository,
   ) {}
   @UseGuards(GuestGuard)
   @Get()
@@ -83,7 +83,7 @@ export class PostsController {
     @Body() likeStatusDto: InputLikeStatusDto,
     @Param('postId') postId: string,
   ) {
-    const foundUser = await this.usersQueryRepo.findUserById(req.user.userId);
+    const foundUser = await this.usersRepo.getUserById(req.user.userId);
     if (foundUser.globalBanInfo.isBanned) throw new UnauthorizedException();
     return await this.postsService.updateLikeStatus(
       postId,

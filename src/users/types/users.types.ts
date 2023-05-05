@@ -54,3 +54,9 @@ export type UserSqlJoinedType = {
   banDate?: Date | null;
   banReason?: string | null;
 };
+
+export type UserQueryType = {
+  id: string;
+  login: string;
+  email: string;
+};

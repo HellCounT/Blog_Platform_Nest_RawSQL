@@ -1,42 +1,45 @@
 import { Injectable } from '@nestjs/common';
-import { UserDb } from './types/users.types';
-import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './entity/users.schema';
-import mongoose, { Model } from 'mongoose';
-import {
-  Device,
-  DeviceDocument,
-} from '../security/devices/entity/devices.schema';
+import { UserQueryType } from './types/users.types';
 import { OutputDeviceDto } from '../security/devices/dto/output.device.dto';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
+import { DeviceDb } from '../security/devices/types/devices.types';
 
 @Injectable()
 export class UsersQuery {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
-    @InjectModel(Device.name) private deviceModel: Model<DeviceDocument>,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
 
-  async findUserById(userId: string): Promise<UserDb> {
-    return this.userModel.findOne({
-      _id: new mongoose.Types.ObjectId(userId),
-    });
+  async findUserById(userId: string): Promise<UserQueryType> {
+    try {
+      const result = await this.dataSource.query(
+        `
+SELECT * FROM "USERS"
+WHERE u."id" = $1
+        `,
+        [userId],
+      );
+      if (result.length < 1) return null;
+      return result[0];
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async getAllSessionsForCurrentUser(
     userId: string,
   ): Promise<Array<OutputDeviceDto>> {
-    const sessions: Array<DeviceDocument> = await this.deviceModel
-      .find({ userId: new mongoose.Types.ObjectId(userId) })
-      .lean();
+    const sessions: Array<DeviceDb> = await this.dataSource.query(
+      `
+      SELECT * FROM "DEVICES"
+      WHERE "userId" = $1
+      `,
+      [userId],
+    );
     return sessions.map((e) => this._mapDevicesToViewType(e));
   }
-  async findSessionByDeviceId(
-    deviceId: mongoose.Types.ObjectId,
-  ): Promise<DeviceDocument> {
-    return this.deviceModel.findOne({ _id: deviceId });
-  }
-  private _mapDevicesToViewType(device: DeviceDocument): OutputDeviceDto {
+  private _mapDevicesToViewType(device: DeviceDb): OutputDeviceDto {
     return {
-      deviceId: device._id.toString(),
+      deviceId: device.id,
       ip: device.ip,
       title: device.deviceName,
       lastActiveDate: device.issuedAt.toISOString(),

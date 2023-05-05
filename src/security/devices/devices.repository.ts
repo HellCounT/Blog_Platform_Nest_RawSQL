@@ -11,7 +11,7 @@ export class DevicesRepository {
       const result = await this.dataSource.query(
         `
       SELECT * FROM "DEVICES"
-      WHERE "deviceId" = $1
+      WHERE "id" = $1
       `,
         [deviceId],
       );
@@ -41,7 +41,7 @@ export class DevicesRepository {
       `
 INSERT INTO "DEVICES"
 ("id", "userId", "ip", "deviceName", "issuedAt", "expirationDate", "refreshTokenMeta")
-VALUES($1, $2, $3, $4, $5, $6, $7)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
       `,
       [
         newSession.id,

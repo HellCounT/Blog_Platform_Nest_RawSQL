@@ -13,7 +13,7 @@ export class ExpiredTokensRepository {
       `
 INSERT INTO "EXPIRED_TOKENS"
 ("id", "userId", "refreshTokenMeta")
-VALUES($1, $2, $3)
+VALUES ($1, $2, $3)
       `,
       [id, userId, refreshTokenMeta],
     );
