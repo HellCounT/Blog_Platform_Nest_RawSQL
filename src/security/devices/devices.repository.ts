@@ -66,6 +66,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
         'Issue date for new refresh token: ',
         issueDate.toISOString(),
       );
+      console.log('Device id in new refresh token: ', deviceId);
       const activeSessionResult = await this.dataSource.query(
         `
 SELECT * FROM "DEVICES"

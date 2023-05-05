@@ -1,6 +1,7 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { DevicesRepository } from '../devices.repository';
 import { TokenBanService } from '../../tokens/token.ban.service';
+import { NotFoundException } from '@nestjs/common';
 
 export class UpdateSessionWithDeviceIdCommand {
   constructor(
@@ -17,8 +18,17 @@ export class UpdateSessionWithDeviceIdUseCase {
     protected tokenBanService: TokenBanService,
   ) {}
   async execute(command: UpdateSessionWithDeviceIdCommand) {
+    const foundSession = await this.devicesRepo.findSessionByDeviceId(
+      command.deviceId,
+    );
+    if (!foundSession) throw new NotFoundException();
     const newRefreshTokenMeta = this.tokenBanService.createMeta(
       command.newRefreshToken,
+    );
+    console.log('Current deviceId: ', command.deviceId);
+    console.log(
+      'Issue date for current refresh token: ',
+      foundSession.issuedAt.toISOString(),
     );
     return await this.devicesRepo.updateSessionWithDeviceId(
       newRefreshTokenMeta,

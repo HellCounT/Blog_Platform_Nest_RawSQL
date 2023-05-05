@@ -13,11 +13,7 @@ export class DeleteSessionUseCase {
       command.deviceId,
     );
     if (!foundSession) throw new NotFoundException();
-    console.log(
-      'Issue date for current refresh token: ',
-      foundSession.issuedAt.toISOString(),
-    );
-    if (foundSession.userId.toString() === command.userId.toString()) {
+    if (foundSession.userId === command.userId) {
       await this.devicesRepo.deleteSessionById(command.deviceId);
       return true;
     } else {
