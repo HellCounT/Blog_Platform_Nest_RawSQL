@@ -246,7 +246,7 @@ WHERE "id" = $2
         `
 UPDATE "USERS_GLOBAL_BAN"
 SET "isBanned" = $1, "banDate" = $2, "banReason" = $3
-WHERE "userId" = $3
+WHERE "userId" = $4
         `,
         [isBanned, new Date(), banReason, userId],
       );
