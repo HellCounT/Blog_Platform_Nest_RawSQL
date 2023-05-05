@@ -41,7 +41,7 @@ WHERE ${this._getBanStatusForQuery(q.banStatus)} (
     u."login" ILIKE '%' || COALESCE($1, '') || '%'
     OR
     u."email" ILIKE '%' || COALESCE($2, '') || '%'
-) ORDER BY ${this._pickOrderForQuery(q.sortBy, q.sortDirection)}
+) ${this._pickOrderForQuery(q.sortBy, q.sortDirection)}
 LIMIT $3 OFFSET $4
       `,
       [q.searchLoginTerm, q.searchEmailTerm, q.pageSize, offsetSize],
