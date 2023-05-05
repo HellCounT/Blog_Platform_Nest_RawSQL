@@ -35,6 +35,7 @@ WHERE "userId" = $1
       `,
       [userId],
     );
+    console.log('GET SESSIONS: ', sessions);
     return sessions.map((e) => this._mapDevicesToViewType(e));
   }
   private _mapDevicesToViewType(device: DeviceDb): OutputDeviceDto {

@@ -62,6 +62,10 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
     expDate: Date,
   ): Promise<boolean> {
     try {
+      console.log(
+        'Issue date for new refresh token: ',
+        issueDate.toISOString(),
+      );
       const activeSessionResult = await this.dataSource.query(
         `
 SELECT * FROM "DEVICES"
