@@ -25,11 +25,6 @@ export class UpdateSessionWithDeviceIdUseCase {
     const newRefreshTokenMeta = this.tokenBanService.createMeta(
       command.newRefreshToken,
     );
-    console.log('Current deviceId: ', command.deviceId);
-    console.log(
-      'Issue date for current refresh token: ',
-      foundSession.issuedAt.toISOString(),
-    );
     return await this.devicesRepo.updateSessionWithDeviceId(
       newRefreshTokenMeta,
       command.deviceId,
