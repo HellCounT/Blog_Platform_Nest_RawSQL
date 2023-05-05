@@ -37,7 +37,6 @@ export class DevicesRepository {
     }
   }
   async addSessionToDb(newSession: DeviceDb): Promise<void> {
-    console.log('new session: ', newSession);
     await this.dataSource.query(
       `
 INSERT INTO "DEVICES"
@@ -54,7 +53,6 @@ VALUES ($1, $2, $3, $4, $5, $6, $7)
         newSession.refreshTokenMeta,
       ],
     );
-    console.log('Session has started');
     return;
   }
   async updateSessionWithDeviceId(
