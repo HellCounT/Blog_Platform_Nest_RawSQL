@@ -206,7 +206,7 @@ WHERE "id" = $1
       await this.dataSource.query(
         `
 UPDATE "USERS_RECOVERY"
-SET "recoveryCode" = $1 AND "recoveryExpirationDate" = $2
+SET "recoveryCode" = $1, "recoveryExpirationDate" = $2
 WHERE "userId" = $3
       `,
         [newRecoveryCode, new Date(), id],
@@ -245,7 +245,7 @@ WHERE "id" = $2
       await this.dataSource.query(
         `
 UPDATE "USERS_GLOBAL_BAN"
-SET "isBanned" = $1 AND "banDate" = $2 AND "banReason" = $3
+SET "isBanned" = $1, "banDate" = $2, "banReason" = $3
 WHERE "userId" = $3
         `,
         [isBanned, new Date(), banReason, userId],
@@ -254,7 +254,7 @@ WHERE "userId" = $3
       await this.dataSource.query(
         `
 UPDATE "USERS_GLOBAL_BAN"
-SET "isBanned" = $1 AND "banDate" = null AND "banReason" = null
+SET "isBanned" = $1, "banDate" = null, "banReason" = null
 WHERE "userId" = $2
         `,
         [isBanned, userId],

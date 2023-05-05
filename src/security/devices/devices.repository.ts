@@ -73,7 +73,7 @@ WHERE "id" = $1
         await this.dataSource.query(
           `
 UPDATE "DEVICES"
-SET "issuedAt" = $1 AND "expirationDate" = $2 AND "refreshTokenMeta" = $3
+SET "issuedAt" = $1, "expirationDate" = $2, "refreshTokenMeta" = $3
 WHERE "id" = $4
           `,
           [issueDate, expDate, newRefreshTokenMeta, deviceId],
