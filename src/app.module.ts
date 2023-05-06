@@ -95,6 +95,7 @@ import { BloggerUsersQuery } from './blogger/users/blogger.users.query';
 import { BanBlogUseCase } from './superadmin/blogs/use-cases/ban.blog.use-case';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import process from 'process';
+import { TestInterceptor } from './test.interceptor';
 
 const controllers = [
   AppController,
@@ -220,6 +221,7 @@ const adapters = [JwtAdapter, EmailManager];
   ],
   controllers: [...controllers],
   providers: [
+    TestInterceptor,
     //Services
     ...services,
     //UseCases
