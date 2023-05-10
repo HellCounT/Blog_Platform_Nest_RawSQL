@@ -1,5 +1,3 @@
-import { Types } from 'mongoose';
-
 export type PostViewModelType = {
   id: string;
   title: string;
@@ -29,21 +27,17 @@ export type ExtendedLikesInfoViewModelType = LikesInfoViewModelType & {
 
 export class PostDb {
   constructor(
-    public _id: Types.ObjectId,
+    public id: string,
     public title: string,
     public shortDescription: string,
     public content: string,
     public blogId: string,
     public blogName: string,
     public createdAt: Date,
-    public postOwnerInfo: {
-      userId: string;
-      isBanned: boolean;
-    },
-    public likesInfo: {
-      likesCount: number;
-      dislikesCount: number;
-    },
+    public ownerId: string,
+    public ownerIsBanned: boolean,
+    public likesCount: number,
+    public dislikesCount: number,
     public parentBlogIsBanned: boolean,
   ) {}
 }
