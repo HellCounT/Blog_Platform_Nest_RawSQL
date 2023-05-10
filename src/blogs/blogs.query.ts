@@ -1,15 +1,16 @@
 import { QueryParser } from '../application-helpers/query.parser';
-import { BlogPaginatorType, BlogViewModelType } from './types/blogs.types';
-import mongoose, { Model } from 'mongoose';
+import {
+  BlogDb,
+  BlogPaginatorType,
+  BlogViewModelType,
+} from './types/blogs.types';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogDocument } from './entity/blogs.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsQuery {
-  constructor(
-    @InjectModel(Blog.name) protected blogModel: Model<BlogDocument>,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async viewAllBlogs(q: QueryParser): Promise<BlogPaginatorType> {
     let filter = '';
     if (q.searchNameTerm) filter = '.*' + q.searchNameTerm + '.*';
@@ -35,19 +36,21 @@ export class BlogsQuery {
       items: pageBlogs,
     };
   }
-  async findBlogById(id: string): Promise<BlogViewModelType> {
-    const foundBlogInstance = await this.blogModel
-      .findOne({
-        _id: new mongoose.Types.ObjectId(id),
-        isBanned: false,
-      })
-      .lean();
-    if (foundBlogInstance) return this._mapBlogToViewType(foundBlogInstance);
+  async findBlogById(blogId: string): Promise<BlogViewModelType> {
+    const foundBlogResult: BlogDb[] = await this.dataSource.query(
+      `
+      SELECT * FROM "BLOGS"
+      WHERE "id" = $1
+      `,
+      [blogId],
+    );
+    if (foundBlogResult.length === 1)
+      return this._mapBlogToViewType(foundBlogResult[0]);
     else throw new NotFoundException();
   }
-  _mapBlogToViewType(blog: BlogDocument): BlogViewModelType {
+  _mapBlogToViewType(blog: BlogDb): BlogViewModelType {
     return {
-      id: blog._id.toString(),
+      id: blog.id,
       name: blog.name,
       description: blog.description,
       websiteUrl: blog.websiteUrl,
