@@ -1,23 +1,15 @@
 import { BlogDb } from './types/blogs.types';
-import { Model } from 'mongoose';
 import {
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogDocument } from './entity/blogs.schema';
-import { Post, PostDocument } from '../posts/entity/posts.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsRepository {
-  constructor(
-    @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
-    @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getBlogById(blogId: string): Promise<BlogDb> {
     try {
       const result: BlogDb[] = await this.dataSource.query(
