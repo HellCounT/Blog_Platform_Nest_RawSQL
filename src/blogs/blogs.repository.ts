@@ -1,5 +1,5 @@
 import { BlogDb } from './types/blogs.types';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import {
   ForbiddenException,
   Injectable,
@@ -8,22 +8,58 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Blog, BlogDocument } from './entity/blogs.schema';
 import { Post, PostDocument } from '../posts/entity/posts.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class BlogsRepository {
   constructor(
     @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
     @InjectModel(Post.name) private postModel: Model<PostDocument>,
+    @InjectDataSource() protected dataSource: DataSource,
   ) {}
-  async getBlogById(id: string): Promise<BlogDocument> {
-    return this.blogModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
+  async getBlogById(blogId: string): Promise<BlogDb> {
+    try {
+      const result: BlogDb[] = await this.dataSource.query(
+        `
+        SELECT * FROM "BLOGS" AS b
+        WHERE b."id" = $1
+        `,
+        [blogId],
+      );
+      if (result.length < 1) return null;
+      return result[0];
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async createBlog(newBlog: BlogDb): Promise<BlogDb> {
-    const blogInstance = new this.blogModel(newBlog);
-    await blogInstance.save();
-    return newBlog;
+    try {
+      await this.dataSource.query(
+        `
+        INSERT INTO "BLOGS"
+        ("id", "name", "description", "websiteUrl", "createdAt", "isMembership", "ownerId", "ownerIsBanned", "isBanned", "banDate")
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `,
+        [
+          newBlog.id,
+          newBlog.name,
+          newBlog.description,
+          newBlog.websiteUrl,
+          newBlog.createdAt,
+          newBlog.isMembership,
+          newBlog.ownerId,
+          newBlog.ownerIsBanned,
+          newBlog.isBanned,
+          newBlog.banDate,
+        ],
+      );
+      return await this.getBlogById(newBlog.id);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async updateBlog(
     id: string,
@@ -32,57 +68,97 @@ export class BlogsRepository {
     websiteUrl: string,
     userId: string,
   ): Promise<boolean> {
-    const blogInstance = await this.blogModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-    });
-    if (!blogInstance) throw new NotFoundException();
-    if (blogInstance.blogOwnerInfo.userId !== userId)
-      throw new ForbiddenException();
-    if (name) {
-      blogInstance.name = name;
-      await this.postModel.updateMany(
-        { blogId: id },
-        {
-          $set: {
-            blogName: name,
-          },
-        },
-      );
+    const blog = await this.getBlogById(id);
+    if (!blog) throw new NotFoundException();
+    if (blog.ownerId !== userId) throw new ForbiddenException();
+    try {
+      if (name)
+        await this.dataSource.query(
+          `
+      UPDATE "BLOGS"
+      SET "name" = $1
+      WHERE "id" = $2
+      `,
+          [name, id],
+        );
+      if (description)
+        await this.dataSource.query(
+          `
+      UPDATE "BLOGS"
+      SET "description" = $1
+      WHERE "id" = $2
+      `,
+          [description, id],
+        );
+      if (websiteUrl)
+        await this.dataSource.query(
+          `
+      UPDATE "BLOGS"
+      SET "websiteUrl" = $1
+      WHERE "id" = $2
+      `,
+          [websiteUrl, id],
+        );
+      return true;
+    } catch (e) {
+      console.log(e);
+      return false;
     }
-    if (description) blogInstance.description = description;
-    if (websiteUrl) blogInstance.websiteUrl = websiteUrl;
-    await blogInstance.save();
-    return true;
   }
   async deleteBlog(blogId: string, userId: string): Promise<void> {
     const blog = await this.getBlogById(blogId);
     if (!blog) throw new NotFoundException();
-    if (blog.blogOwnerInfo.userId !== userId) throw new ForbiddenException();
-    await this.blogModel.deleteOne({
-      _id: new mongoose.Types.ObjectId(blogId),
-    });
-    return;
-  }
-  async getByUserId(userId: string): Promise<BlogDocument[]> {
-    return this.blogModel.find({ 'blogOwnerInfo.userId': userId });
+    if (blog.ownerId !== userId) throw new ForbiddenException();
+    try {
+      await this.dataSource.query(
+        `
+        DELETE FROM "BLOGS"
+        WHERE "id" = $1;
+        `,
+        [blogId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    await this.blogModel.updateMany(
-      { 'blogOwnerInfo.userId': userId },
-      { 'blogOwnerInfo.isBanned': isBanned },
-    );
-    return;
+    try {
+      await this.dataSource.query(
+        `
+      UPDATE "BLOGS"
+      SET "ownerIsBanned" = $1
+      WHERE "ownerId" = $2
+      `,
+        [isBanned, userId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async banBlogById(blogId: string, isBanned: boolean): Promise<void> {
-    const blogInstance = await this.getBlogById(blogId);
-    blogInstance.isBanned = isBanned;
-    if (isBanned) {
-      blogInstance.banDate = new Date();
-    } else {
-      blogInstance.banDate = null;
+    try {
+      let banDate: Date | null;
+      const blogInstance = await this.getBlogById(blogId);
+      blogInstance.isBanned = isBanned;
+      if (isBanned) banDate = new Date();
+      else banDate = null;
+      await this.dataSource.query(
+        `
+      UPDATE "BLOGS"
+      SET "isBanned" = $1, "banDate" = $2
+      WHERE "id" = $3
+      `,
+        [isBanned, banDate, blogId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
     }
-    await blogInstance.save();
-    return;
   }
   async save(blog: BlogDocument): Promise<BlogDocument> {
     return await blog.save();

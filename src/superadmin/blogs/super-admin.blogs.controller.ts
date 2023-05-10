@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Get,
@@ -11,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { BasicAuthGuard } from '../../auth/guards/basic-auth.guard';
 import { CommandBus } from '@nestjs/cqrs';
-import mongoose from 'mongoose';
 import { BindBlogToUserCommand } from './use-cases/bind.blog.to.user.use-case';
 import { SuperAdminBlogsQuery } from './super-admin.blogs.query';
 import {
@@ -42,11 +40,6 @@ export class SuperAdminBlogsController {
     @Param('blogId') blogId: string,
     @Param('userId') userId: string,
   ) {
-    if (
-      !mongoose.Types.ObjectId.isValid(blogId) ||
-      !mongoose.Types.ObjectId.isValid(userId)
-    )
-      throw new BadRequestException(['wrong id']);
     await this.commandBus.execute(new BindBlogToUserCommand(blogId, userId));
   }
   @Put(':id/ban')

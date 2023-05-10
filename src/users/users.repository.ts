@@ -95,6 +95,7 @@ VALUES ($1, $2, $3)
         },
       };
     } catch (e) {
+      console.log(e);
       await queryRunner.rollbackTransaction();
     }
   }
