@@ -2,13 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
 import { QueryParser } from '../application-helpers/query.parser';
 import {
-  PostDb,
+  PostDbWithBlogNameType,
   PostPaginatorType,
   PostViewModelType,
 } from './types/posts.types';
 import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostDocument } from './entity/posts.schema';
-import { Blog, BlogDocument } from '../blogs/entity/blogs.schema';
 import { LikeStatus } from '../likes/types/likes.types';
 import {
   LikeForPostDocument,
@@ -18,8 +16,6 @@ import {
 @Injectable()
 export class PostsQuery {
   constructor(
-    @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
     @InjectModel(LikeForPost.name)
     private likeForPostModel: Model<LikeForPostDocument>,
   ) {}
@@ -126,11 +122,11 @@ export class PostsQuery {
       .lean();
   }
   async _mapPostToViewType(
-    post: PostDb,
+    post: PostDbWithBlogNameType,
     userId: string,
   ): Promise<PostViewModelType> {
-    const userLike = await this.getUserLikeForPost(userId, post._id.toString());
-    const newestLikes = await this._getNewestLikes(post._id.toString());
+    const userLike = await this.getUserLikeForPost(userId, post.id);
+    const newestLikes = await this._getNewestLikes(post.id);
     const mappedLikes = newestLikes.map((e) => {
       return {
         addedAt: new Date(e.addedAt).toISOString(),
@@ -139,7 +135,7 @@ export class PostsQuery {
       };
     });
     return {
-      id: post._id.toString(),
+      id: post.id,
       title: post.title,
       shortDescription: post.shortDescription,
       content: post.content,
@@ -147,8 +143,8 @@ export class PostsQuery {
       blogName: post.blogName,
       createdAt: new Date(post.createdAt).toISOString(),
       extendedLikesInfo: {
-        likesCount: post.likesInfo?.likesCount,
-        dislikesCount: post.likesInfo?.dislikesCount,
+        likesCount: post.likesCount,
+        dislikesCount: post.dislikesCount,
         myStatus: userLike?.likeStatus || LikeStatus.none,
         newestLikes: mappedLikes,
       },
