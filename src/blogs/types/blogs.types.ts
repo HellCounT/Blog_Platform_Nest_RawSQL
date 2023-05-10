@@ -1,5 +1,3 @@
-import { Types } from 'mongoose';
-
 export type BlogViewModelType = {
   id: string;
   name: string;
@@ -11,7 +9,7 @@ export type BlogViewModelType = {
 
 export class BlogDb {
   constructor(
-    public _id: Types.ObjectId,
+    public id: string,
     public name: string,
     public description: string,
     public websiteUrl: string,
