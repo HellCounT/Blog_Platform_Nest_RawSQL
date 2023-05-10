@@ -41,6 +41,21 @@ export class PostDb {
   ) {}
 }
 
+export type PostDbWithBlogNameType = {
+  id: string;
+  title: string;
+  shortDescription: string;
+  content: string;
+  blogId: string;
+  blogName: string;
+  createdAt: Date;
+  ownerId: string;
+  ownerIsBanned: boolean;
+  likesCount: number;
+  dislikesCount: number;
+  parentBlogIsBanned: boolean;
+};
+
 export type PostPaginatorType = {
   pagesCount: number;
   page: number;
