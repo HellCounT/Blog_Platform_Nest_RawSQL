@@ -1,52 +1,61 @@
 import { Injectable } from '@nestjs/common';
-import { QueryParser } from '../../application-helpers/query.parser';
-import { BlogPaginatorType } from '../../blogs/types/blogs.types';
+import {
+  pickOrderForQuery,
+  QueryParser,
+} from '../../application-helpers/query.parser';
+import { BlogDb, BlogPaginatorType } from '../../blogs/types/blogs.types';
 import { BlogsQuery } from '../../blogs/blogs.query';
 import {
   CommentsForBloggerViewType,
   OutputCommentsPaginatorBloggerDto,
 } from './dto/output.comments.paginator.blogger.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostDocument } from '../../posts/entity/posts.schema';
 import {
   Comment,
   CommentDocument,
 } from '../../comments/entity/comments.schema';
-import mongoose, { Model } from 'mongoose';
-import { Blog, BlogDocument } from '../../blogs/entity/blogs.schema';
+import { Model } from 'mongoose';
 import { CommentLikeDb, LikeStatus } from '../../likes/types/likes.types';
 import { LikeForComment } from '../../likes/entity/likes-for-comments.schema';
+import { DataSource } from 'typeorm';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { PostDbWithBlogNameType } from '../../posts/types/posts.types';
 
 @Injectable()
 export class BloggerBlogsQuery extends BlogsQuery {
   constructor(
-    @InjectModel(Post.name) protected postModel: Model<PostDocument>,
     @InjectModel(Comment.name) protected commentModel: Model<CommentDocument>,
-    @InjectModel(Blog.name) protected blogModel: Model<BlogDocument>,
     @InjectModel(LikeForComment.name)
     protected likeForCommentModel: Model<LikeForComment>,
+    @InjectDataSource() protected dataSource: DataSource,
   ) {
-    super(blogModel);
+    super(dataSource);
   }
   async getAllBlogsForBlogger(
     q: QueryParser,
     userId,
   ): Promise<BlogPaginatorType> {
-    let filter = '';
-    if (q.searchNameTerm) filter = '.*' + q.searchNameTerm + '.*';
-    const allBlogsCount = await this.blogModel.countDocuments({
-      name: { $regex: filter, $options: 'i' },
-      'blogOwnerInfo.userId': userId,
-    });
-    const reqPageDbBlogs = await this.blogModel
-      .find({
-        name: { $regex: filter, $options: 'i' },
-        'blogOwnerInfo.userId': userId,
-      })
-      .sort({ [q.sortBy]: q.sortDirection })
-      .skip((q.pageNumber - 1) * q.pageSize)
-      .limit(q.pageSize)
-      .lean();
+    const allBlogsCountResult = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "BLOGS"
+      WHERE "ownerId" = $1
+      AND "name" ILIKE '%' || COALESCE($2, '') || '%'
+      `,
+      [userId, q.searchNameTerm],
+    );
+    const allBlogsCount: number = parseInt(allBlogsCountResult[0].count, 10);
+    const offsetSize = (q.pageNumber - 1) * q.pageSize;
+    const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
+      `
+      SELECT * FROM "BLOGS"
+      WHERE "ownerId" = $1
+      AND "name" ILIKE '%' || COALESCE($2, '') || '%'
+      ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+      LIMIT $3 OFFSET $4
+      `,
+      [userId, q.searchNameTerm, q.pageSize, offsetSize],
+    );
     const pageBlogs = reqPageDbBlogs.map((b) => this._mapBlogToViewType(b));
     return {
       pagesCount: Math.ceil(allBlogsCount / q.pageSize),
@@ -88,9 +97,22 @@ export class BloggerBlogsQuery extends BlogsQuery {
     comment: CommentDocument,
     userId: string,
   ): Promise<CommentsForBloggerViewType> {
-    const post = await this.postModel.findOne({
-      _id: new mongoose.Types.ObjectId(comment.postId),
-    });
+    const postSearchResult: PostDbWithBlogNameType[] =
+      await this.dataSource.query(
+        `
+        SELECT p."id", p."title", p."shortDescription", 
+        p."content", p."blogId", b."blogName", p."createdAt", 
+        p."ownerId", p."ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned",
+        FROM "POSTS" as p
+        JOIN "BLOGS" as b
+        ON p."blogId" = b."id"
+        WHERE p."id" = $1
+        `,
+        [comment.postId],
+      );
+    if (postSearchResult.length < 1) return null;
+    const post = postSearchResult[0];
     const like = await this.getUserLikeForComment(
       userId,
       comment._id.toString(),

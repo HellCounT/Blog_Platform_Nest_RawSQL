@@ -28,8 +28,7 @@ export class BlogsQuery {
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
       `
-      SELECT COUNT(*)
-      FROM "BLOGS"
+      SELECT * FROM "BLOGS"
       WHERE ("isBanned" = false AND "ownerIsBanned = false")
       AND "name" ILIKE '%' || COALESCE($1, '') || '%'
       ${pickOrderForQuery(q.sortBy, q.sortDirection)}
