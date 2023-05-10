@@ -56,6 +56,36 @@ export const parseUserQueryPagination = (query): UserQueryParser => {
   return queryUserParamsParser;
 };
 
+export const getBanStatusForQuery = (banStatus: BanStatus): string => {
+  if (banStatus === BanStatus.banned) {
+    return `b."isBanned" = true AND `;
+  } else if (banStatus === BanStatus.notBanned) {
+    return `b."isBanned" = false AND `;
+  } else return ``;
+};
+export const pickOrderForQuery = (order: string, direction: 1 | -1): string => {
+  let orderString = 'ORDER BY';
+  switch (order) {
+    case 'id':
+      orderString += ' u."id"';
+      break;
+    case 'login':
+      orderString += ' u."login"';
+      break;
+    case 'email':
+      orderString += ' u."email"';
+      break;
+    default:
+      orderString = 'ORDER BY u."createdAt"';
+  }
+  if (direction === 1) {
+    orderString += ' ASC';
+  } else {
+    orderString += ' DESC';
+  }
+  return orderString;
+};
+
 export enum BanStatus {
   all = 'all',
   banned = 'banned',

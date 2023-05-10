@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import mongoose, { Model } from 'mongoose';
-import { QueryParser } from '../application-helpers/query.parser';
+import {
+  pickOrderForQuery,
+  QueryParser,
+} from '../application-helpers/query.parser';
 import {
   PostDbWithBlogNameType,
   PostPaginatorType,
@@ -12,10 +15,13 @@ import {
   LikeForPostDocument,
   LikeForPost,
 } from '../likes/entity/likes-for-post.schema';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PostsQuery {
   constructor(
+    @InjectDataSource() protected dataSource: DataSource,
     @InjectModel(LikeForPost.name)
     private likeForPostModel: Model<LikeForPostDocument>,
   ) {}
@@ -23,15 +29,31 @@ export class PostsQuery {
     q: QueryParser,
     activeUserId: string,
   ): Promise<PostPaginatorType> {
-    const allPostsCount = await this.postModel.countDocuments({
-      'postOwnerInfo.isBanned': false,
-    });
-    const reqPageDbPosts = await this.postModel
-      .find({ 'postOwnerInfo.isBanned': false })
-      .sort({ [q.sortBy]: q.sortDirection })
-      .skip((q.pageNumber - 1) * q.pageSize)
-      .limit(q.pageSize)
-      .lean();
+    const allPostsCountResult = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "POSTS"
+      WHERE "ownerIsBanned" = false
+      `,
+    );
+    const allPostsCount: number = parseInt(allPostsCountResult[0], 10);
+    const offsetSize = (q.pageNumber - 1) * q.pageSize;
+    const reqPageDbPosts: PostDbWithBlogNameType[] =
+      await this.dataSource.query(
+        `
+      SELECT p."id", p."title", p."shortDescription", 
+        p."content", p."blogId", b."blogName", p."createdAt", 
+        p."ownerId", p."ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned",
+        FROM "POSTS" as p
+        JOIN "BLOGS" as b
+        ON p."blogId" = b."id"
+        WHERE p."ownerIsBanned" = false
+        ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+        LIMIT $1 OFFSET $4
+      `,
+        [q.pageSize, offsetSize],
+      );
     const items = [];
     for await (const p of reqPageDbPosts) {
       const post = await this._mapPostToViewType(p, activeUserId);
@@ -46,15 +68,25 @@ export class PostsQuery {
     };
   }
   async findPostById(
-    id: string,
+    postId: string,
     activeUserId: string,
   ): Promise<PostViewModelType | null> {
-    const foundPostInstance = await this.postModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-      parentBlogIsBanned: false,
-    });
-    if (foundPostInstance)
-      return this._mapPostToViewType(foundPostInstance, activeUserId);
+    const foundPostResult: PostDbWithBlogNameType[] =
+      await this.dataSource.query(
+        `
+        SELECT p."id", p."title", p."shortDescription", 
+        p."content", p."blogId", b."blogName", p."createdAt", 
+        p."ownerId", p."ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned",
+        FROM "POSTS" as p
+        JOIN "BLOGS" as b
+        ON p."blogId" = b."id"
+        WHERE p."id" = $1
+        `,
+        [postId],
+      );
+    if (foundPostResult.length === 1)
+      return this._mapPostToViewType(foundPostResult[0], activeUserId);
     else throw new NotFoundException();
   }
   async findPostsByBlogId(

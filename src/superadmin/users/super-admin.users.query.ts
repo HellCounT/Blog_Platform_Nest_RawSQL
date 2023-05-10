@@ -1,5 +1,6 @@
 import {
-  BanStatus,
+  getBanStatusForQuery,
+  pickOrderForQuery,
   UserQueryParser,
 } from '../../application-helpers/query.parser';
 import {
@@ -21,7 +22,7 @@ SELECT COUNT(*)
 FROM "USERS" as u
 JOIN "USERS_GLOBAL_BAN" as b
 ON u."id" = b."userId"
-WHERE ${this._getBanStatusForQuery(q.banStatus)} (
+WHERE ${getBanStatusForQuery(q.banStatus)} (
     u."login" ILIKE '%' || COALESCE($1, '') || '%'
     OR
     u."email" ILIKE '%' || COALESCE($2, '') || '%'
@@ -38,11 +39,11 @@ b."isBanned", b."banDate", b."banReason"
 FROM "USERS" as u
 JOIN "USERS_GLOBAL_BAN" as b
 ON u."id" = b."userId"
-WHERE ${this._getBanStatusForQuery(q.banStatus)} (
+WHERE ${getBanStatusForQuery(q.banStatus)} (
     u."login" ILIKE '%' || COALESCE($1, '') || '%'
     OR
     u."email" ILIKE '%' || COALESCE($2, '') || '%'
-) ${this._pickOrderForQuery(q.sortBy, q.sortDirection)}
+) ${pickOrderForQuery(q.sortBy, q.sortDirection)}
 LIMIT $3 OFFSET $4
       `,
       [q.searchLoginTerm, q.searchEmailTerm, q.pageSize, offsetSize],
@@ -73,34 +74,5 @@ LIMIT $3 OFFSET $4
         banReason: user.banReason,
       },
     };
-  }
-  private _getBanStatusForQuery(banStatus: BanStatus): string {
-    if (banStatus === BanStatus.banned) {
-      return `b."isBanned" = true AND `;
-    } else if (banStatus === BanStatus.notBanned) {
-      return `b."isBanned" = false AND `;
-    } else return ``;
-  }
-  private _pickOrderForQuery(order: string, direction: 1 | -1): string {
-    let orderString = 'ORDER BY';
-    switch (order) {
-      case 'id':
-        orderString += ' u."id"';
-        break;
-      case 'login':
-        orderString += ' u."login"';
-        break;
-      case 'email':
-        orderString += ' u."email"';
-        break;
-      default:
-        orderString = 'ORDER BY u."createdAt"';
-    }
-    if (direction === 1) {
-      orderString += ' ASC';
-    } else {
-      orderString += ' DESC';
-    }
-    return orderString;
   }
 }
