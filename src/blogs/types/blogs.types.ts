@@ -16,7 +16,6 @@ export class BlogDb {
     public createdAt: string,
     public isMembership: boolean,
     public ownerId: string,
-    public ownerLogin: string,
     public ownerIsBanned: boolean,
     public isBanned: boolean,
     public banDate: Date | null,
