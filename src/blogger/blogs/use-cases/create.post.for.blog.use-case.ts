@@ -4,7 +4,7 @@ import { BlogsRepository } from '../../../blogs/blogs.repository';
 import { PostsRepository } from '../../../posts/posts.repository';
 import { PostDb, PostViewModelType } from '../../../posts/types/posts.types';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import mongoose from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreatePostForBlogCommand {
   constructor(
@@ -24,24 +24,18 @@ export class CreatePostForBlogUseCase {
   ): Promise<PostViewModelType | null> {
     const foundBlog = await this.blogsRepo.getBlogById(command.blogId);
     if (!foundBlog) throw new NotFoundException(['wrong blog id']);
-    if (foundBlog.blogOwnerInfo.userId !== command.userId)
-      throw new ForbiddenException();
+    if (foundBlog.ownerId !== command.userId) throw new ForbiddenException();
     const newPost = new PostDb(
-      new mongoose.Types.ObjectId(),
+      uuidv4(),
       command.createPostDto.title,
       command.createPostDto.shortDescription,
       command.createPostDto.content,
       command.blogId,
-      foundBlog.name,
       new Date(),
-      {
-        isBanned: false,
-        userId: foundBlog.blogOwnerInfo.userId,
-      },
-      {
-        likesCount: 0,
-        dislikesCount: 0,
-      },
+      foundBlog.ownerId,
+      false,
+      0,
+      0,
       false,
     );
     return await this.postsRepo.createPost(newPost);
