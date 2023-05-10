@@ -94,23 +94,27 @@ export class PostsRepository {
     }
   }
   async updatePost(
-    inputId: string,
+    postId: string,
     postTitle: string,
-    short: string,
-    text: string,
+    shortDescription: string,
+    content: string,
     blogId: string,
     blogName: string,
   ): Promise<boolean | null> {
-    const postInstance = await this.postModel.findOne({
-      _id: new mongoose.Types.ObjectId(inputId),
-    });
-    // postInstance.title = postTitle;
-    // postInstance.shortDescription = short;
-    // postInstance.content = text;
-    // postInstance.blogId = blogId;
-    // postInstance.blogName = blogName;
-    // await postInstance.save();
-    return true;
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "POSTS"
+        SET "title" = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4, "blogName" = $5
+        WHERE "id" = $6
+        `,
+        [postTitle, shortDescription, content, blogId, blogName, postTitle],
+      );
+      return true;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async deletePost(inputId: string): Promise<boolean> {
     const deleteResult = await this.postModel.deleteOne({

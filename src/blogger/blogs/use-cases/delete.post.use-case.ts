@@ -22,10 +22,7 @@ export class DeletePostUseCase {
     const blog = await this.blogsRepo.getBlogById(command.blogId);
     const post = await this.postsRepo.getPostById(command.postId);
     if (!post || !blog) throw new NotFoundException();
-    if (
-      blog.blogOwnerInfo.userId !== command.userId ||
-      post.postOwnerInfo.userId !== command.userId
-    )
+    if (blog.ownerId !== command.userId || post.ownerId !== command.userId)
       throw new ForbiddenException();
     await this.likesForPostsService.deleteAllLikesWhenPostIsDeleted(
       command.postId,
