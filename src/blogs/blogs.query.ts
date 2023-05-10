@@ -1,4 +1,7 @@
-import { QueryParser } from '../application-helpers/query.parser';
+import {
+  pickOrderForQuery,
+  QueryParser,
+} from '../application-helpers/query.parser';
 import {
   BlogDb,
   BlogPaginatorType,
@@ -12,21 +15,28 @@ import { DataSource } from 'typeorm';
 export class BlogsQuery {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async viewAllBlogs(q: QueryParser): Promise<BlogPaginatorType> {
-    let filter = '';
-    if (q.searchNameTerm) filter = '.*' + q.searchNameTerm + '.*';
-    const allBlogsCount = await this.blogModel.countDocuments({
-      name: { $regex: filter, $options: 'i' },
-      isBanned: false,
-    });
-    const reqPageDbBlogs = await this.blogModel
-      .find({
-        name: { $regex: filter, $options: 'i' },
-        isBanned: false,
-      })
-      .sort({ [q.sortBy]: q.sortDirection })
-      .skip((q.pageNumber - 1) * q.pageSize)
-      .limit(q.pageSize)
-      .lean();
+    const allBlogsCountResult = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "BLOGS"
+      WHERE ("isBanned" = false AND "ownerIsBanned = false")
+      AND "name" ILIKE '%' || COALESCE($1, '') || '%'
+      `,
+      [q.searchNameTerm],
+    );
+    const allBlogsCount: number = parseInt(allBlogsCountResult[0].count, 10);
+    const offsetSize = (q.pageNumber - 1) * q.pageSize;
+    const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "BLOGS"
+      WHERE ("isBanned" = false AND "ownerIsBanned = false")
+      AND "name" ILIKE '%' || COALESCE($1, '') || '%'
+      ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+      LIMIT $2 OFFSET $3
+      `,
+      [q.searchNameTerm, q.pageSize, offsetSize],
+    );
     const pageBlogs = reqPageDbBlogs.map((b) => this._mapBlogToViewType(b));
     return {
       pagesCount: Math.ceil(allBlogsCount / q.pageSize),
