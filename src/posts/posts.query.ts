@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import mongoose, { Model } from 'mongoose';
+import { Model } from 'mongoose';
 import {
   pickOrderForQuery,
   QueryParser,
@@ -17,6 +17,7 @@ import {
 } from '../likes/entity/likes-for-post.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
+import { BlogDb } from '../blogs/types/blogs.types';
 
 @Injectable()
 export class PostsQuery {
@@ -36,21 +37,21 @@ export class PostsQuery {
       WHERE "ownerIsBanned" = false
       `,
     );
-    const allPostsCount: number = parseInt(allPostsCountResult[0], 10);
+    const allPostsCount: number = parseInt(allPostsCountResult[0].count, 10);
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageDbPosts: PostDbWithBlogNameType[] =
       await this.dataSource.query(
         `
-      SELECT p."id", p."title", p."shortDescription", 
+        SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."blogName", p."createdAt", 
         p."ownerId", p."ownerIsBanned", p."likesCount", 
         p."dislikesCount", p."parentBlogIsBanned",
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
-        WHERE p."ownerIsBanned" = false
+        WHERE p."ownerIsBanned" = false AND p."parentBlogIsBanned" = false
         ${pickOrderForQuery(q.sortBy, q.sortDirection)}
-        LIMIT $1 OFFSET $4
+        LIMIT $1 OFFSET $2
       `,
         [q.pageSize, offsetSize],
       );
@@ -94,29 +95,44 @@ export class PostsQuery {
     q: QueryParser,
     activeUserId: string,
   ): Promise<PostPaginatorType | null> {
-    if (
-      await this.blogModel
-        .findOne({
-          _id: new mongoose.Types.ObjectId(blogId),
-        })
-        .lean()
-    ) {
-      const foundPostsCount = await this.postModel.countDocuments({
-        blogId: { $eq: blogId },
-        'postOwnerInfo.isBanned': false,
-        parentBlogIsBanned: false,
-      });
-      const reqPageDbPosts = await this.postModel
-        .find({
-          blogId: { $eq: blogId },
-          'postOwnerInfo.isBanned': false,
-          parentBlogIsBanned: false,
-        })
-        .sort({ [q.sortBy]: q.sortDirection })
-        .skip((q.pageNumber - 1) * q.pageSize)
-        .limit(q.pageSize)
-        .lean();
-      if (!reqPageDbPosts) return null;
+    const foundBlogResult: BlogDb[] = await this.dataSource.query(
+      `
+        SELECT * FROM "BLOGS"
+        WHERE "id" = $1
+        `,
+      [blogId],
+    );
+    if (foundBlogResult.length === 1) {
+      const foundPostsCountResult = await this.dataSource.query(
+        `
+        SELECT COUNT(*)
+        FROM "POSTS"
+        WHERE "blogId" = $1 AND ("ownerIsBanned" = false AND "parentBlogIsBanned" = false)
+        `,
+        [blogId],
+      );
+      const foundPostsCount: number = parseInt(
+        foundPostsCountResult[0].count,
+        10,
+      );
+      const offsetSize = (q.pageNumber - 1) * q.pageSize;
+      const reqPageDbPosts: PostDbWithBlogNameType[] =
+        await this.dataSource.query(
+          `
+        SELECT p."id", p."title", p."shortDescription", 
+        p."content", p."blogId", b."blogName", p."createdAt", 
+        p."ownerId", p."ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned",
+        FROM "POSTS" as p
+        JOIN "BLOGS" as b
+        ON p."blogId" = b."id"
+        WHERE WHERE "blogId" = $1 AND (p."ownerIsBanned" = false AND p."parentBlogIsBanned" = false)
+        ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+        LIMIT $1 OFFSET $2
+        `,
+          [q.pageSize, offsetSize],
+        );
+      if (reqPageDbPosts.length === 0) return null;
       else {
         const items = [];
         for await (const p of reqPageDbPosts) {
