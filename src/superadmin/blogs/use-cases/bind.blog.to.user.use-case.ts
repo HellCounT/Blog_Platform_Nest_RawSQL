@@ -18,10 +18,8 @@ export class BindBlogToUserUseCase {
     const blog = await this.blogsRepo.getBlogById(command.blogId);
     const user = await this.usersRepo.getUserById(command.userId);
     if (!blog || !user) throw new BadRequestException(['wrong id']);
-    if (blog.blogOwnerInfo.userId !== null)
-      throw new BadRequestException(['wrong id']);
-    blog.blogOwnerInfo.userId = command.userId;
-    await this.blogsRepo.save(blog);
+    if (blog.ownerId !== null) throw new BadRequestException(['wrong id']);
+    await this.blogsRepo.bindUser(blog.id, user.id);
     return true;
   }
 }

@@ -160,7 +160,20 @@ export class BlogsRepository {
       return;
     }
   }
-  async save(blog: BlogDocument): Promise<BlogDocument> {
-    return await blog.save();
+  async bindUser(blogId: string, userId: string): Promise<void> {
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "BLOGS"
+        SET "ownerId" = $1
+        WHERE "id" = $2
+        `,
+        [userId, blogId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
 }
