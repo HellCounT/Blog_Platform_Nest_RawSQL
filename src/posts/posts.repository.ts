@@ -3,21 +3,13 @@ import {
   PostDbWithBlogNameType,
   PostViewModelType,
 } from './types/posts.types';
-import mongoose, { Model } from 'mongoose';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Post, PostDocument } from './entity/posts.schema';
-import { Blog, BlogDocument } from '../blogs/entity/blogs.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class PostsRepository {
-  constructor(
-    @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async getPostById(postId: string): Promise<PostDb> {
     try {
       const result: PostDb[] = await this.dataSource.query(
@@ -116,39 +108,71 @@ export class PostsRepository {
       return null;
     }
   }
-  async deletePost(inputId: string): Promise<boolean> {
-    const deleteResult = await this.postModel.deleteOne({
-      _id: new mongoose.Types.ObjectId(inputId),
-    });
-    return deleteResult.deletedCount === 1;
+  async deletePost(postId: string): Promise<boolean> {
+    try {
+      await this.dataSource.query(
+        `
+        DELETE FROM "POSTS"
+        WHERE "id" = $1;
+        `,
+        [postId],
+      );
+      return true;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
   }
   async updateLikesCounters(
     newLikesCount: number,
     newDislikesCount: number,
     postId: string,
-  ) {
-    const postInstance = await this.postModel.findOne({
-      _id: new mongoose.Types.ObjectId(postId),
-    });
-    if (postInstance) {
-      postInstance.likesInfo.likesCount = newLikesCount;
-      postInstance.likesInfo.dislikesCount = newDislikesCount;
-      await postInstance.save();
+  ): Promise<void> {
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "POSTS"
+        SET "likesCount" = $1, "dislikesCount" = $2
+        WHERE "id" = $3
+        `,
+        [newLikesCount, newDislikesCount, postId],
+      );
       return;
-    } else return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    await this.postModel.updateMany(
-      { 'postOwnerInfo.userId': userId },
-      { 'postOwnerInfo.isBanned': isBanned },
-    );
-    return;
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "POSTS"
+        SET "ownerIsBanned" = $1
+        WHERE "ownerId" = $2
+        `,
+        [isBanned, userId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async banByBlogId(blogId: string, isBanned: boolean): Promise<void> {
-    await this.postModel.updateMany(
-      { blogId: blogId },
-      { parentBlogIsBanned: isBanned },
-    );
-    return;
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "POSTS"
+        SET "parentBlogIsBanned" = $1
+        WHERE "blogId" = $2
+        `,
+        [isBanned, blogId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
 }
