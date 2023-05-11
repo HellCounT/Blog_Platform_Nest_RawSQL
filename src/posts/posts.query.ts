@@ -83,7 +83,7 @@ export class PostsQuery {
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
         p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned"
+        p."dislikesCount", b."isBanned" as "parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
@@ -132,7 +132,7 @@ export class PostsQuery {
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
         p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned"
+        p."dislikesCount", b."isBanned" as "parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"

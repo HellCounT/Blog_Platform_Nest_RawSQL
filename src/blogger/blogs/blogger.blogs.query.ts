@@ -38,8 +38,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
     const allBlogsCountResult = await this.dataSource.query(
       `
       SELECT COUNT(*)
-      FROM "BLOGS"
-      WHERE "ownerId" = $1
+      FROM "BLOGS" AS b
+      WHERE b."ownerId" = $1
       AND "name" ILIKE '%' || COALESCE($2, '') || '%'
       `,
       [userId, q.searchNameTerm],
@@ -48,8 +48,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
       `
-      SELECT * FROM "BLOGS"
-      WHERE "ownerId" = $1
+      SELECT * FROM "BLOGS" AS b
+      WHERE b."ownerId" = $1
       AND "name" ILIKE '%' || COALESCE($2, '') || '%'
       ${pickOrderForBlogsQuery(q.sortBy, q.sortDirection)}
       LIMIT $3 OFFSET $4
