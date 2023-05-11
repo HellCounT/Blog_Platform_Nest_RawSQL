@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
-  pickOrderForUsersQuery,
+  pickOrderForBlogsQuery,
   QueryParser,
 } from '../../application-helpers/query.parser';
 import { BlogSAPaginatorType } from './types/super-admin.blogs.types';
@@ -34,7 +34,7 @@ export class SuperAdminBlogsQuery {
       JOIN "USERS_GLOBAL_BAN" AS ub
       ON b."ownerId" = ub."userId"
       WHERE "name" ILIKE '%' || COALESCE($1, '') || '%'
-      ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
+      ${pickOrderForBlogsQuery(q.sortBy, q.sortDirection)}
       LIMIT $2 OFFSET $3
       `,
       [q.searchNameTerm, q.pageSize, offsetSize],
