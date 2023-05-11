@@ -100,12 +100,14 @@ export class BloggerBlogsQuery extends BlogsQuery {
     const postSearchResult: PostDbJoinedType[] = await this.dataSource.query(
       `
         SELECT p."id", p."title", p."shortDescription", 
-        p."content", p."blogId", b."blogName", p."createdAt", 
-        p."ownerId", p."ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned",
+        p."content", p."blogId", b."name" as "blogName", p."createdAt", 
+        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
         WHERE p."id" = $1
         `,
       [comment.postId],

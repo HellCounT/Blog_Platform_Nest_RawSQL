@@ -114,22 +114,6 @@ export class BlogsRepository {
       return;
     }
   }
-  async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    try {
-      await this.dataSource.query(
-        `
-      UPDATE "BLOGS"
-      SET "ownerIsBanned" = $1
-      WHERE "ownerId" = $2
-      `,
-        [isBanned, userId],
-      );
-      return;
-    } catch (e) {
-      console.log(e);
-      return;
-    }
-  }
   async banBlogById(blogId: string, isBanned: boolean): Promise<void> {
     try {
       let banDate: Date | null;
