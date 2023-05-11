@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { UserDb, UserSqlJoinedType } from './types/users.types';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { DataSource, QueryRunner } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { sqlUserJoinQuery } from '../application-helpers/sql.user.join.query';
 
 @Injectable()
@@ -26,79 +26,139 @@ export class UsersRepository {
     }
   }
   async createUser(newUser: UserDb): Promise<OutputSuperAdminUserDto> {
-    const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
-    try {
-      await queryRunner.query(
-        `
-INSERT INTO "USERS" 
-("id", "login", "email", "createdAt", "hash")
-VALUES ($1, $2, $3, $4, $5)
-    `,
-        [
-          newUser.id,
-          newUser.accountData.login,
-          newUser.accountData.email,
-          newUser.accountData.createdAt,
-          newUser.accountData.hash,
-        ],
-      );
-      await this.dataSource.query(
-        `
-INSERT INTO "USERS_GLOBAL_BAN"
-("userId", "isBanned", "banReason")
-VALUES ($1, $2, $3)
-      `,
-        [
-          newUser.id,
-          newUser.globalBanInfo.isBanned,
-          newUser.globalBanInfo.banReason,
-        ],
-      );
-      await queryRunner.query(
-        `
-INSERT INTO "USERS_CONFIRMATIONS"
-("userId", "confirmationCode", "confirmationExpirationDate", "isConfirmed")
-VALUES ($1, $2, $3, $4)
-      `,
-        [
-          newUser.id,
-          newUser.emailConfirmationData.confirmationCode,
-          newUser.emailConfirmationData.expirationDate,
-          newUser.emailConfirmationData.isConfirmed,
-        ],
-      );
-      await queryRunner.query(
-        `
-INSERT INTO "USERS_RECOVERY"
-("userId", "recoveryCode", "recoveryExpirationDate")
-VALUES ($1, $2, $3)
-      `,
-        [
-          newUser.id,
-          newUser.recoveryCodeData.recoveryCode,
-          newUser.recoveryCodeData.expirationDate,
-        ],
-      );
-      await queryRunner.commitTransaction();
-      const user = await this.getUserById(newUser.id);
-      return {
-        id: user.id,
-        login: user.accountData.login,
-        email: user.accountData.email,
-        createdAt: user.accountData.createdAt,
-        banInfo: {
-          isBanned: user.globalBanInfo.isBanned,
-          banDate: null,
-          banReason: user.globalBanInfo.banReason,
-        },
-      };
-    } catch (e) {
-      console.log(e);
-      await queryRunner.rollbackTransaction();
-    }
+    const insertedIdResult = await this.dataSource.query(
+      `
+        INSERT INTO "USERS"
+        ("id", "login", "email", "createdAt", "hash")
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
+            `,
+      [
+        newUser.id,
+        newUser.accountData.login,
+        newUser.accountData.email,
+        newUser.accountData.createdAt,
+        newUser.accountData.hash,
+      ],
+    );
+    const insertedId = insertedIdResult[0].id;
+    await this.dataSource.query(
+      `
+      INSERT INTO "USERS_GLOBAL_BAN"
+      ("userId", "isBanned", "banReason")
+      VALUES ($1, $2, $3)
+            `,
+      [
+        insertedId,
+        newUser.globalBanInfo.isBanned,
+        newUser.globalBanInfo.banReason,
+      ],
+    );
+    await this.dataSource.query(
+      `
+      INSERT INTO "USERS_CONFIRMATIONS"
+      ("userId", "confirmationCode", "confirmationExpirationDate", "isConfirmed")
+      VALUES ($1, $2, $3, $4)
+            `,
+      [
+        insertedId,
+        newUser.emailConfirmationData.confirmationCode,
+        newUser.emailConfirmationData.expirationDate,
+        newUser.emailConfirmationData.isConfirmed,
+      ],
+    );
+    await this.dataSource.query(
+      `
+      INSERT INTO "USERS_RECOVERY"
+      ("userId", "recoveryCode", "recoveryExpirationDate")
+      VALUES ($1, $2, $3)
+            `,
+      [
+        insertedId,
+        newUser.recoveryCodeData.recoveryCode,
+        newUser.recoveryCodeData.expirationDate,
+      ],
+    );
+
+    // const queryRunner: QueryRunner = this.dataSource.createQueryRunner();
+    // await queryRunner.connect();
+    // await queryRunner.startTransaction();
+    // try {
+    //   const insertedIdResult = await queryRunner.query(
+    //     `
+    //   INSERT INTO "USERS"
+    //   ("id", "login", "email", "createdAt", "hash")
+    //   VALUES ($1, $2, $3, $4, $5)
+    //   RETURNING id
+    //       `,
+    //     [
+    //       newUser.id,
+    //       newUser.accountData.login,
+    //       newUser.accountData.email,
+    //       newUser.accountData.createdAt,
+    //       newUser.accountData.hash,
+    //     ],
+    //   );
+    //   const insertedId = insertedIdResult[0].id;
+    //   await this.dataSource.query(
+    //     `
+    //   INSERT INTO "USERS_GLOBAL_BAN"
+    //   ("userId", "isBanned", "banReason")
+    //   VALUES ($1, $2, $3)
+    //         `,
+    //     [
+    //       insertedId,
+    //       newUser.globalBanInfo.isBanned,
+    //       newUser.globalBanInfo.banReason,
+    //     ],
+    //   );
+    //   await queryRunner.query(
+    //     `
+    //   INSERT INTO "USERS_CONFIRMATIONS"
+    //   ("userId", "confirmationCode", "confirmationExpirationDate", "isConfirmed")
+    //   VALUES ($1, $2, $3, $4)
+    //         `,
+    //     [
+    //       insertedId,
+    //       newUser.emailConfirmationData.confirmationCode,
+    //       newUser.emailConfirmationData.expirationDate,
+    //       newUser.emailConfirmationData.isConfirmed,
+    //     ],
+    //   );
+    //   await queryRunner.query(
+    //     `
+    //   INSERT INTO "USERS_RECOVERY"
+    //   ("userId", "recoveryCode", "recoveryExpirationDate")
+    //   VALUES ($1, $2, $3)
+    //         `,
+    //     [
+    //       insertedId,
+    //       newUser.recoveryCodeData.recoveryCode,
+    //       newUser.recoveryCodeData.expirationDate,
+    //     ],
+    //   );
+    //   await queryRunner.commitTransaction();
+    const user = await this.getUserById(newUser.id);
+    return {
+      id: user.id,
+      login: user.accountData.login,
+      email: user.accountData.email,
+      createdAt: user.accountData.createdAt,
+      banInfo: {
+        isBanned: user.globalBanInfo.isBanned,
+        banDate: null,
+        banReason: user.globalBanInfo.banReason,
+      },
+    };
   }
+  catch(e) {
+    console.log(e);
+    // await queryRunner.rollbackTransaction();
+    return null;
+  }
+  //finally {
+  // await queryRunner.release();
+  //}
   async deleteUser(id: string): Promise<boolean> {
     try {
       const result = await this.dataSource.query(
