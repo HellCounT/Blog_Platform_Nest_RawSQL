@@ -41,9 +41,7 @@ export class BanUserForBlogUseCase {
       else {
         const banUserByBloggerInfo = new UserBannedByBloggerDb(
           command.banUserForBlogDto.blogId,
-          command.blogOwnerId,
           command.userIdToBan,
-          userToBan.accountData.login,
           command.banUserForBlogDto.banReason,
           new Date(),
         );

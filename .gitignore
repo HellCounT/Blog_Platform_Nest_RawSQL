@@ -4,6 +4,7 @@
 
 .env
 nodemon.json
+testtext.json
 
 # Logs
 logs
