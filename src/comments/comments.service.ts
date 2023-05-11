@@ -46,7 +46,7 @@ export class CommentsService {
         isBanned: false,
       },
       postId,
-      foundPost.postOwnerInfo.userId,
+      foundPost.ownerId,
       new Date().toISOString(),
       {
         likesCount: 0,
