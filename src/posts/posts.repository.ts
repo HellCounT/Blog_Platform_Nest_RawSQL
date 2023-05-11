@@ -91,16 +91,15 @@ export class PostsRepository {
     shortDescription: string,
     content: string,
     blogId: string,
-    blogName: string,
   ): Promise<boolean | null> {
     try {
       await this.dataSource.query(
         `
-        UPDATE "POSTS" AS p
-        SET "title" = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4, "blogName" = $5
-        WHERE p."id" = $6
+        UPDATE "POSTS"
+        SET "title" = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4
+        WHERE "id" = $5
         `,
-        [postTitle, shortDescription, content, blogId, blogName, postTitle],
+        [postTitle, shortDescription, content, blogId, postId],
       );
       return true;
     } catch (e) {
