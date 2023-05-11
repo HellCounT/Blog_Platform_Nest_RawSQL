@@ -1,6 +1,6 @@
 import {
   getBanStatusForQuery,
-  pickOrderForQuery,
+  pickOrderForUsersQuery,
   UserQueryParser,
 } from '../../application-helpers/query.parser';
 import {
@@ -43,7 +43,7 @@ WHERE ${getBanStatusForQuery(q.banStatus)} (
     u."login" ILIKE '%' || COALESCE($1, '') || '%'
     OR
     u."email" ILIKE '%' || COALESCE($2, '') || '%'
-) ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+) ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
 LIMIT $3 OFFSET $4
       `,
       [q.searchLoginTerm, q.searchEmailTerm, q.pageSize, offsetSize],

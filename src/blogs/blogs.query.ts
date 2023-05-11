@@ -1,5 +1,5 @@
 import {
-  pickOrderForQuery,
+  pickOrderForBlogsQuery,
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
@@ -37,7 +37,7 @@ export class BlogsQuery {
       ON b."ownerId" = ub."userId"
       WHERE (b."isBanned" = false AND ub."isBanned" = false)
       AND "name" ILIKE '%' || COALESCE($1, '') || '%'
-      ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+      ${pickOrderForBlogsQuery(q.sortBy, q.sortDirection)}
       LIMIT $2 OFFSET $3
       `,
       [q.searchNameTerm, q.pageSize, offsetSize],

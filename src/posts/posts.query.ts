@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Model } from 'mongoose';
 import {
-  pickOrderForQuery,
+  pickOrderForPostsQuery,
+  pickOrderForUsersQuery,
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
@@ -55,7 +56,7 @@ export class PostsQuery {
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
         WHERE ub."isBanned" = false AND b."isBanned" = false
-        ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+        ${pickOrderForPostsQuery(q.sortBy, q.sortDirection)}
         LIMIT $1 OFFSET $2
       `,
       [q.pageSize, offsetSize],
@@ -138,7 +139,7 @@ export class PostsQuery {
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
         WHERE WHERE "blogId" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
-        ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+        ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
         LIMIT $1 OFFSET $2
         `,
         [q.pageSize, offsetSize],

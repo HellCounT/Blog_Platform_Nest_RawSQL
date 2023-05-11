@@ -63,7 +63,10 @@ export const getBanStatusForQuery = (banStatus: BanStatus): string => {
     return `b."isBanned" = false AND `;
   } else return ``;
 };
-export const pickOrderForQuery = (order: string, direction: 1 | -1): string => {
+export const pickOrderForUsersQuery = (
+  order: string,
+  direction: 1 | -1,
+): string => {
   let orderString = 'ORDER BY';
   switch (order) {
     case 'id':
@@ -77,6 +80,70 @@ export const pickOrderForQuery = (order: string, direction: 1 | -1): string => {
       break;
     default:
       orderString = 'ORDER BY u."createdAt"';
+  }
+  if (direction === 1) {
+    orderString += ' ASC';
+  } else {
+    orderString += ' DESC';
+  }
+  return orderString;
+};
+
+export const pickOrderForBlogsQuery = (
+  order: string,
+  direction: 1 | -1,
+): string => {
+  let orderString = 'ORDER BY';
+  switch (order) {
+    case 'id':
+      orderString += ' b."id"';
+      break;
+    case 'name':
+      orderString += ' b."name"';
+      break;
+    case 'description':
+      orderString += ' b."description"';
+      break;
+    case 'websiteUrl':
+      orderString += ' b."websiteUrl"';
+      break;
+    case 'ownerId':
+      orderString += ' b."ownerId"';
+      break;
+    default:
+      orderString = 'ORDER BY b."createdAt"';
+  }
+  if (direction === 1) {
+    orderString += ' ASC';
+  } else {
+    orderString += ' DESC';
+  }
+  return orderString;
+};
+
+export const pickOrderForPostsQuery = (
+  order: string,
+  direction: 1 | -1,
+): string => {
+  let orderString = 'ORDER BY';
+  switch (order) {
+    case 'id':
+      orderString += ' p."id"';
+      break;
+    case 'title':
+      orderString += ' p."title"';
+      break;
+    case 'shortDescription':
+      orderString += ' p."shortDescription"';
+      break;
+    case 'blogId':
+      orderString += ' p."blogId"';
+      break;
+    case 'ownerId':
+      orderString += ' p."ownerId"';
+      break;
+    default:
+      orderString = 'ORDER BY p."createdAt"';
   }
   if (direction === 1) {
     orderString += ' ASC';

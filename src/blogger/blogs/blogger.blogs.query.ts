@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
-  pickOrderForQuery,
+  pickOrderForBlogsQuery,
   QueryParser,
 } from '../../application-helpers/query.parser';
 import { BlogDb, BlogPaginatorType } from '../../blogs/types/blogs.types';
@@ -51,7 +51,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
       SELECT * FROM "BLOGS"
       WHERE "ownerId" = $1
       AND "name" ILIKE '%' || COALESCE($2, '') || '%'
-      ${pickOrderForQuery(q.sortBy, q.sortDirection)}
+      ${pickOrderForBlogsQuery(q.sortBy, q.sortDirection)}
       LIMIT $3 OFFSET $4
       `,
       [userId, q.searchNameTerm, q.pageSize, offsetSize],

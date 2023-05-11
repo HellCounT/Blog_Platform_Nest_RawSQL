@@ -1,10 +1,4 @@
-import {
-  IsBoolean,
-  IsMongoId,
-  IsNotEmpty,
-  IsString,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsString, MinLength } from 'class-validator';
 import { Trim } from '../../../auth/decorators/validation-decorators/trim.decorator';
 
 export class InputBanUserForBlogDto {
@@ -21,6 +15,5 @@ export class InputBanUserForBlogDto {
   @IsString()
   @IsNotEmpty()
   @Trim()
-  @IsMongoId()
   blogId: string;
 }
