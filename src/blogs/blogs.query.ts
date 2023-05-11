@@ -55,7 +55,7 @@ export class BlogsQuery {
     const foundBlogResult: BlogDb[] = await this.dataSource.query(
       `
       SELECT * FROM "BLOGS"
-      WHERE "id" = $1
+      WHERE "id" = $1 AND "isBanned" = false
       `,
       [blogId],
     );

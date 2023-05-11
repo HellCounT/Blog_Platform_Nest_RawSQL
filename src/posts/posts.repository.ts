@@ -96,9 +96,9 @@ export class PostsRepository {
     try {
       await this.dataSource.query(
         `
-        UPDATE "POSTS"
+        UPDATE "POSTS" AS p
         SET "title" = $1, "shortDescription" = $2, "content" = $3, "blogId" = $4, "blogName" = $5
-        WHERE "id" = $6
+        WHERE p."id" = $6
         `,
         [postTitle, shortDescription, content, blogId, blogName, postTitle],
       );
