@@ -5,7 +5,6 @@ import { BlogsRepository } from '../../../blogs/blogs.repository';
 import { UsersBannedByBloggerRepository } from '../users-banned-by-blogger/users-banned-by-blogger.repository';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { UserBannedByBloggerDb } from '../users-banned-by-blogger/types/user-banned-by-blogger.types';
-import mongoose from 'mongoose';
 
 export class BanUserForBlogCommand {
   constructor(
@@ -23,8 +22,6 @@ export class BanUserForBlogUseCase {
     protected usersBannedByBloggerRepo: UsersBannedByBloggerRepository,
   ) {}
   async execute(command: BanUserForBlogCommand): Promise<boolean> {
-    if (!mongoose.Types.ObjectId.isValid(command.userIdToBan))
-      throw new NotFoundException();
     const userToBan = await this.usersRepo.getUserById(command.userIdToBan);
     const foundBlog = await this.blogsRepo.getBlogById(
       command.banUserForBlogDto.blogId,

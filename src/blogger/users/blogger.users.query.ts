@@ -57,7 +57,7 @@ export class BloggerUsersQuery {
       ${pickOrderForBannedByBloggerUsersQuery(q.sortBy, q.sortDirection)}
       LIMIT $3 OFFSET $4
       `,
-        [q.searchLoginTerm, blogId, q.pageSize, q.pageSize, offsetSize],
+        [q.searchLoginTerm, blogId, q.pageSize, offsetSize],
       );
     const pageBannedUsers: Array<OutputBannedUserByBloggerDto> =
       reqPageDbBans.map((b) => this._mapBanToBannedUserViewType(b));
