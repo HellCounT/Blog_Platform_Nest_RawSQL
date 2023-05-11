@@ -101,13 +101,15 @@ export class BloggerBlogsQuery extends BlogsQuery {
       `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
-        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned"
+        p."ownerId", u."login" as "ownerLogin", ub."isBanned" as "ownerIsBanned", 
+        p."likesCount", p."dislikesCount", p."parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
+        JOIN "USERS" as u
+        ON p."ownerId" = u."id"
         WHERE p."id" = $1
         `,
       [comment.postId],

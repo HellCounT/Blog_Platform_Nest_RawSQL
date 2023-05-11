@@ -29,6 +29,7 @@ export type BlogDbJoinedType = {
   createdAt: string;
   isMembership: boolean;
   ownerId: string;
+  ownerLogin: string;
   ownerIsBanned: boolean;
   isBanned: boolean;
   banDate: Date | null;

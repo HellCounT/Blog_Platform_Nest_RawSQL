@@ -18,8 +18,10 @@ export class BlogsQuery {
     const allBlogsCountResult = await this.dataSource.query(
       `
       SELECT COUNT(*)
-      FROM "BLOGS"
-      WHERE ("isBanned" = false AND "ownerIsBanned = false")
+      FROM "BLOGS" AS b
+      JOIN "USERS_GLOBAL_BAN" AS ub
+      ON b."ownerId" = ub."userId"
+      WHERE (b."isBanned" = false AND ub."isBanned" = false)
       AND "name" ILIKE '%' || COALESCE($1, '') || '%'
       `,
       [q.searchNameTerm],
@@ -28,8 +30,12 @@ export class BlogsQuery {
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
     const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
       `
-      SELECT * FROM "BLOGS"
-      WHERE ("isBanned" = false AND "ownerIsBanned = false")
+      SELECT b."id", b."name", b."description", b."websiteUrl", b."createdAt",
+      b."isMembership", b."ownerId", b."isBanned", b."banDate"
+      FROM "BLOGS" AS b
+      JOIN "USERS_GLOBAL_BAN" AS ub
+      ON b."ownerId" = ub."userId"
+      WHERE (b."isBanned" = false AND ub."isBanned" = false)
       AND "name" ILIKE '%' || COALESCE($1, '') || '%'
       ${pickOrderForQuery(q.sortBy, q.sortDirection)}
       LIMIT $2 OFFSET $3
