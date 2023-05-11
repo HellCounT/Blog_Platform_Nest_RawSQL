@@ -22,14 +22,14 @@ export class BloggerUsersQuery {
     userId: string,
     q: UserQueryParser,
   ): Promise<PaginatorType<OutputBannedUserByBloggerDto>> {
-    const foundBlogResult: [BlogDb] = await this.dataSource.query(
+    const foundBlogResult: BlogDb[] = await this.dataSource.query(
       `
       SELECT * FROM "BLOGS"
       WHERE "id" = $1
       `,
       [blogId],
     );
-    if (foundBlogResult.length < 1) throw new NotFoundException();
+    if (foundBlogResult.length === 0) throw new NotFoundException();
     if (foundBlogResult[0].ownerId !== userId) throw new ForbiddenException();
     const bansCountResult = await this.dataSource.query(
       `
