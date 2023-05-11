@@ -31,8 +31,8 @@ export class BlogsRepository {
       await this.dataSource.query(
         `
         INSERT INTO "BLOGS"
-        ("id", "name", "description", "websiteUrl", "createdAt", "isMembership", "ownerId", "ownerIsBanned", "isBanned", "banDate")
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        ("id", "name", "description", "websiteUrl", "createdAt", "isMembership", "ownerId", "isBanned", "banDate")
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `,
         [
           newBlog.id,
