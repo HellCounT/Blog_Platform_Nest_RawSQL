@@ -58,12 +58,14 @@ export class AppController {
       // this.dataSource.query(`DELETE FROM "USERS_GLOBAL_BAN"`),
       // this.dataSource.query(`DELETE FROM "EXPIRED_TOKENS"`),
       // this.dataSource.query(`DELETE FROM "DEVICES"`),
-      await this.blogModel.deleteMany({}),
-      await this.postModel.deleteMany({}),
-      await this.commentModel.deleteMany({}),
-      await this.likesForPostsModel.deleteMany({}),
-      await this.likesForCommentsModel.deleteMany({}),
-      await this.userBannedByBloggerModel.deleteMany({}),
+      this.dataSource.query(`DELETE FROM "POSTS"`),
+      this.dataSource.query(`DELETE FROM "BLOGS"`),
+      this.blogModel.deleteMany({}),
+      this.postModel.deleteMany({}),
+      this.commentModel.deleteMany({}),
+      this.likesForPostsModel.deleteMany({}),
+      this.likesForCommentsModel.deleteMany({}),
+      this.userBannedByBloggerModel.deleteMany({}),
     ]);
 
     return;
