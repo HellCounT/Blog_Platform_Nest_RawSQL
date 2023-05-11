@@ -1,21 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  UserBannedByBlogger,
-  UserBannedByBloggerDocument,
-} from './entity/user-banned-by-blogger.schema';
-import { Model } from 'mongoose';
 import { UserBannedByBloggerDb } from './types/user-banned-by-blogger.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 
 @Injectable()
 export class UsersBannedByBloggerRepository {
-  constructor(
-    @InjectModel(UserBannedByBlogger.name)
-    private userBannedByBloggerModel: Model<UserBannedByBloggerDocument>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async findUserBan(
     blogId: string,
     bannedUserId: string,
@@ -59,8 +49,8 @@ export class UsersBannedByBloggerRepository {
     try {
       const result = await this.dataSource.query(
         `
-DELETE FROM "BANNED_USERS_BY_BLOGGERS" AS bu
-WHERE bu."blogId" = $1 AND bu."bannedUserId" = $2
+        DELETE FROM "BANNED_USERS_BY_BLOGGERS" AS bu
+        WHERE bu."blogId" = $1 AND bu."bannedUserId" = $2
         `,
         [blogId, bannedUserId],
       );

@@ -9,7 +9,6 @@ export class UserBannedByBloggerDb {
 
 export type UserBannedByBloggerDbJoinedType = {
   blogId: string;
-  blogOwnerId: string;
   bannedUserId: string;
   bannedUserLogin: string;
   banReason: string;

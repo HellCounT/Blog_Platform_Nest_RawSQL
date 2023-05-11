@@ -89,6 +89,32 @@ export const pickOrderForUsersQuery = (
   return orderString;
 };
 
+export const pickOrderForBannedByBloggerUsersQuery = (
+  order: string,
+  direction: 1 | -1,
+): string => {
+  let orderString = 'ORDER BY';
+  switch (order) {
+    case 'id':
+      orderString += ' u."id"';
+      break;
+    case 'login':
+      orderString += ' u."login"';
+      break;
+    case 'email':
+      orderString += ' "banDate"';
+      break;
+    default:
+      orderString = 'ORDER BY u."createdAt"';
+  }
+  if (direction === 1) {
+    orderString += ' ASC';
+  } else {
+    orderString += ' DESC';
+  }
+  return orderString;
+};
+
 export const pickOrderForBlogsQuery = (
   order: string,
   direction: 1 | -1,
