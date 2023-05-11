@@ -33,10 +33,8 @@ export class CreatePostForBlogUseCase {
       command.blogId,
       new Date(),
       foundBlog.ownerId,
-      false,
       0,
       0,
-      false,
     );
     return await this.postsRepo.createPost(newPost);
   }

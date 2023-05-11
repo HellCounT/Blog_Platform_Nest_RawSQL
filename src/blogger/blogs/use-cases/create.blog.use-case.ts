@@ -30,7 +30,6 @@ export class CreateBlogUseCase {
       false,
       command.userId,
       false,
-      false,
       null,
     );
     const result = await this.blogsRepo.createBlog(newBlog);
