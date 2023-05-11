@@ -5,15 +5,15 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { BlogsQuery } from '../../blogs.query';
+import { BlogsRepository } from '../../blogs.repository';
 
 @ValidatorConstraint({ async: true })
 @Injectable()
 export class BlogExistsConstraint implements ValidatorConstraintInterface {
-  constructor(private readonly blogsQuery: BlogsQuery) {}
+  constructor(private readonly blogsRepo: BlogsRepository) {}
 
   async validate(blogId: string) {
-    const blog = await this.blogsQuery.findBlogById(blogId);
+    const blog = await this.blogsRepo.getBlogById(blogId);
     return !!blog;
   }
   defaultMessage() {

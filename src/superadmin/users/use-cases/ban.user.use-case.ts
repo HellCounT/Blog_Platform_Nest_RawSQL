@@ -1,6 +1,5 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { UsersRepository } from '../../../users/users.repository';
-import { BlogsRepository } from '../../../blogs/blogs.repository';
 import { PostsRepository } from '../../../posts/posts.repository';
 import { CommentsRepository } from '../../../comments/comments.repository';
 import { LikesForPostsRepository } from '../../../likes/likes-for-posts.repository';
@@ -20,7 +19,6 @@ export class BanUserCommand {
 export class BanUserUseCase {
   constructor(
     protected usersRepo: UsersRepository,
-    protected blogsRepo: BlogsRepository,
     protected postsRepo: PostsRepository,
     protected commentsRepo: CommentsRepository,
     protected likesForPostsRepo: LikesForPostsRepository,
@@ -56,8 +54,6 @@ export class BanUserUseCase {
     banReason: string,
   ): Promise<void> {
     await this.usersRepo.banUserById(userId, isBanned, banReason);
-    await this.blogsRepo.banByUserId(userId, isBanned);
-    await this.postsRepo.banByUserId(userId, isBanned);
     await this.commentsRepo.banByUserId(userId, isBanned);
     await this.likesForPostsRepo.banByUserId(userId, isBanned);
     await this.likesForCommentsRepo.banByUserId(userId, isBanned);
