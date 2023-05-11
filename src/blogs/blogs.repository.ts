@@ -42,7 +42,6 @@ export class BlogsRepository {
           newBlog.createdAt,
           newBlog.isMembership,
           newBlog.ownerId,
-          newBlog.ownerIsBanned,
           newBlog.isBanned,
           newBlog.banDate,
         ],

@@ -1,6 +1,6 @@
 import {
   PostDb,
-  PostDbWithBlogNameType,
+  PostDbJoinedType,
   PostViewModelType,
 } from './types/posts.types';
 import { Injectable } from '@nestjs/common';
@@ -33,9 +33,9 @@ export class PostsRepository {
         INSERT INTO "POSTS"
         ("id", "title", "shortDescription", 
         "content", "blogId", "createdAt", 
-        "ownerId", "ownerIsBanned", "likesCount", 
-        "dislikesCount", "parentBlogIsBanned")
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        "ownerId", "likesCount", 
+        "dislikesCount")
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)
         `,
         [
           newPost.id,
@@ -45,21 +45,21 @@ export class PostsRepository {
           newPost.blogId,
           newPost.createdAt,
           newPost.ownerId,
-          newPost.ownerIsBanned,
           newPost.likesCount,
           newPost.dislikesCount,
-          newPost.parentBlogIsBanned,
         ],
       );
-      const postQuery: PostDbWithBlogNameType[] = await this.dataSource.query(
+      const postQuery: PostDbJoinedType[] = await this.dataSource.query(
         `
         SELECT p."id", p."title", p."shortDescription", 
-        p."content", p."blogId", b."blogName", p."createdAt", 
-        p."ownerId", p."ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned",
-        FROM "POSTS" as p
-        JOIN "BLOGS" as b
+        p."content", p."blogId", b."name" as "blogName", p."createdAt", 
+        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
+        p."dislikesCount", b."isBanned" as "parentBlogIsBanned"
+        FROM "POSTS" AS p
+        JOIN "BLOGS" AS b
         ON p."blogId" = b."id"
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
         WHERE p."id" = $1
         `,
         [newPost.id],
@@ -136,38 +136,6 @@ export class PostsRepository {
         WHERE "id" = $3
         `,
         [newLikesCount, newDislikesCount, postId],
-      );
-      return;
-    } catch (e) {
-      console.log(e);
-      return;
-    }
-  }
-  async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    try {
-      await this.dataSource.query(
-        `
-        UPDATE "POSTS"
-        SET "ownerIsBanned" = $1
-        WHERE "ownerId" = $2
-        `,
-        [isBanned, userId],
-      );
-      return;
-    } catch (e) {
-      console.log(e);
-      return;
-    }
-  }
-  async banByBlogId(blogId: string, isBanned: boolean): Promise<void> {
-    try {
-      await this.dataSource.query(
-        `
-        UPDATE "POSTS"
-        SET "parentBlogIsBanned" = $1
-        WHERE "blogId" = $2
-        `,
-        [isBanned, blogId],
       );
       return;
     } catch (e) {

@@ -19,7 +19,7 @@ import { CommentLikeDb, LikeStatus } from '../../likes/types/likes.types';
 import { LikeForComment } from '../../likes/entity/likes-for-comments.schema';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { PostDbWithBlogNameType } from '../../posts/types/posts.types';
+import { PostDbJoinedType } from '../../posts/types/posts.types';
 
 @Injectable()
 export class BloggerBlogsQuery extends BlogsQuery {
@@ -97,9 +97,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
     comment: CommentDocument,
     userId: string,
   ): Promise<CommentsForBloggerViewType> {
-    const postSearchResult: PostDbWithBlogNameType[] =
-      await this.dataSource.query(
-        `
+    const postSearchResult: PostDbJoinedType[] = await this.dataSource.query(
+      `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."blogName", p."createdAt", 
         p."ownerId", p."ownerIsBanned", p."likesCount", 
@@ -109,8 +108,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
         ON p."blogId" = b."id"
         WHERE p."id" = $1
         `,
-        [comment.postId],
-      );
+      [comment.postId],
+    );
     if (postSearchResult.length < 1) return null;
     const post = postSearchResult[0];
     const like = await this.getUserLikeForComment(

@@ -34,14 +34,12 @@ export class PostDb {
     public blogId: string,
     public createdAt: Date,
     public ownerId: string,
-    public ownerIsBanned: boolean,
     public likesCount: number,
     public dislikesCount: number,
-    public parentBlogIsBanned: boolean,
   ) {}
 }
 
-export type PostDbWithBlogNameType = {
+export type PostDbJoinedType = {
   id: string;
   title: string;
   shortDescription: string;

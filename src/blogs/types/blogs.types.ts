@@ -16,11 +16,23 @@ export class BlogDb {
     public createdAt: string,
     public isMembership: boolean,
     public ownerId: string,
-    public ownerIsBanned: boolean,
     public isBanned: boolean,
     public banDate: Date | null,
   ) {}
 }
+
+export type BlogDbJoinedType = {
+  id: string;
+  name: string;
+  description: string;
+  websiteUrl: string;
+  createdAt: string;
+  isMembership: boolean;
+  ownerId: string;
+  ownerIsBanned: boolean;
+  isBanned: boolean;
+  banDate: Date | null;
+};
 
 export type BlogPaginatorType = {
   pagesCount: number;

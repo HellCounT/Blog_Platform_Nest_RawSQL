@@ -5,7 +5,7 @@ import {
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
-  PostDbWithBlogNameType,
+  PostDbJoinedType,
   PostPaginatorType,
   PostViewModelType,
 } from './types/posts.types';
@@ -33,28 +33,33 @@ export class PostsQuery {
     const allPostsCountResult = await this.dataSource.query(
       `
       SELECT COUNT(*)
-      FROM "POSTS"
-      WHERE "ownerIsBanned" = false
+      FROM "POSTS" AS p
+      JOIN "USERS_GLOBAL_BAN" AS ub
+      ON p."ownerId" = ub."userId"
+      JOIN "BLOGS" as b
+      ON p."blogId" = b."id"
+      WHERE ub."isBanned" = false AND b."isBanned" = false
       `,
     );
     const allPostsCount: number = parseInt(allPostsCountResult[0].count, 10);
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
-    const reqPageDbPosts: PostDbWithBlogNameType[] =
-      await this.dataSource.query(
-        `
+    const reqPageDbPosts: PostDbJoinedType[] = await this.dataSource.query(
+      `
         SELECT p."id", p."title", p."shortDescription", 
-        p."content", p."blogId", b."blogName", p."createdAt", 
-        p."ownerId", p."ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned",
+        p."content", p."blogId", b."name" as "blogName", p."createdAt", 
+        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
+        p."dislikesCount", b."isBanned" as "parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
-        WHERE p."ownerIsBanned" = false AND p."parentBlogIsBanned" = false
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
+        WHERE ub."isBanned" = false AND b."isBanned" = false
         ${pickOrderForQuery(q.sortBy, q.sortDirection)}
         LIMIT $1 OFFSET $2
       `,
-        [q.pageSize, offsetSize],
-      );
+      [q.pageSize, offsetSize],
+    );
     const items = [];
     for await (const p of reqPageDbPosts) {
       const post = await this._mapPostToViewType(p, activeUserId);
@@ -72,20 +77,21 @@ export class PostsQuery {
     postId: string,
     activeUserId: string,
   ): Promise<PostViewModelType | null> {
-    const foundPostResult: PostDbWithBlogNameType[] =
-      await this.dataSource.query(
-        `
+    const foundPostResult: PostDbJoinedType[] = await this.dataSource.query(
+      `
         SELECT p."id", p."title", p."shortDescription", 
-        p."content", p."blogId", b."blogName", p."createdAt", 
-        p."ownerId", p."ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned",
+        p."content", p."blogId", b."name" as "blogName", p."createdAt", 
+        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
-        WHERE p."id" = $1
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
+        WHERE p."id" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
         `,
-        [postId],
-      );
+      [postId],
+    );
     if (foundPostResult.length === 1)
       return this._mapPostToViewType(foundPostResult[0], activeUserId);
     else throw new NotFoundException();
@@ -106,8 +112,12 @@ export class PostsQuery {
       const foundPostsCountResult = await this.dataSource.query(
         `
         SELECT COUNT(*)
-        FROM "POSTS"
-        WHERE "blogId" = $1 AND ("ownerIsBanned" = false AND "parentBlogIsBanned" = false)
+        FROM "POSTS" AS p
+        JOIN "BLOGS" as b
+        ON p."blogId" = b."id"
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
+        WHERE "blogId" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
         `,
         [blogId],
       );
@@ -116,22 +126,23 @@ export class PostsQuery {
         10,
       );
       const offsetSize = (q.pageNumber - 1) * q.pageSize;
-      const reqPageDbPosts: PostDbWithBlogNameType[] =
-        await this.dataSource.query(
-          `
+      const reqPageDbPosts: PostDbJoinedType[] = await this.dataSource.query(
+        `
         SELECT p."id", p."title", p."shortDescription", 
-        p."content", p."blogId", b."blogName", p."createdAt", 
-        p."ownerId", p."ownerIsBanned", p."likesCount", 
-        p."dislikesCount", p."parentBlogIsBanned",
+        p."content", p."blogId", b."name" as "blogName", p."createdAt", 
+        p."ownerId", ub."isBanned" as "ownerIsBanned", p."likesCount", 
+        p."dislikesCount", p."parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
-        WHERE WHERE "blogId" = $1 AND (p."ownerIsBanned" = false AND p."parentBlogIsBanned" = false)
+        JOIN "USERS_GLOBAL_BAN" as ub
+        ON p."ownerId" = ub."userId"
+        WHERE WHERE "blogId" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
         ${pickOrderForQuery(q.sortBy, q.sortDirection)}
         LIMIT $1 OFFSET $2
         `,
-          [q.pageSize, offsetSize],
-        );
+        [q.pageSize, offsetSize],
+      );
       if (reqPageDbPosts.length === 0) return null;
       else {
         const items = [];
@@ -170,7 +181,7 @@ export class PostsQuery {
       .lean();
   }
   async _mapPostToViewType(
-    post: PostDbWithBlogNameType,
+    post: PostDbJoinedType,
     userId: string,
   ): Promise<PostViewModelType> {
     const userLike = await this.getUserLikeForPost(userId, post.id);
