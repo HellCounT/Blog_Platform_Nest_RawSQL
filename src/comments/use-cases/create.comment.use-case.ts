@@ -5,8 +5,8 @@ import { UsersRepository } from '../../users/users.repository';
 import { CommentViewDto } from '../dto/output.comment.view.dto';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Comment } from '../types/comments.types';
-import mongoose from 'mongoose';
 import { UsersBannedByBloggerRepository } from '../../blogger/users/users-banned-by-blogger/users-banned-by-blogger.repository';
+import { v4 as uuidv4 } from 'uuid';
 
 export class CreateCommentCommand {
   constructor(
@@ -34,20 +34,13 @@ export class CreateCommentUseCase {
     );
     if (bannedByBlogger) throw new ForbiddenException();
     const newComment = new Comment(
-      new mongoose.Types.ObjectId(),
+      uuidv4(),
       command.content,
-      {
-        userId: command.userId,
-        userLogin: foundUser.accountData.login,
-        isBanned: false,
-      },
+      command.userId,
       command.postId,
-      foundPost.ownerId,
       new Date().toISOString(),
-      {
-        likesCount: 0,
-        dislikesCount: 0,
-      },
+      0,
+      0,
     );
     return await this.commentsRepo.createComment(newComment);
   }
