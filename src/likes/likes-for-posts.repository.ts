@@ -5,53 +5,112 @@ import { DataSource } from 'typeorm';
 
 @Injectable()
 export class LikesForPostsRepository {
-  constructor(@InjectDataSource protected dataSource: DataSource) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async createNewLike(newLike: PostLike): Promise<void> {
-    const likeInPostInstance = new this.likesForPostsModel(newLike);
-    await likeInPostInstance.save();
-    return;
+    try {
+      await this.dataSource.query(
+        `
+        INSERT INTO "LIKES_FOR_POSTS"
+        ("id", "postId", "userId", "addedAt", "likeStatus")
+        VALUES($1, $2, $3, $4, $5)
+        `,
+        [
+          newLike.id,
+          newLike.postId,
+          newLike.userId,
+          newLike.addedAt,
+          newLike.likeStatus,
+        ],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async updateLikeStatus(
     postId: string,
     userId: string,
     likeStatus: LikeStatus,
   ): Promise<void> {
-    const likeInPostInstance = await this.likesForPostsModel.findOne({
-      postId: postId,
-      userId: userId,
-    });
-    if (likeInPostInstance) {
-      likeInPostInstance.likeStatus = likeStatus;
-      await likeInPostInstance.save();
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "LIKES_FOR_POSTS"
+        SET "likeStatus" = $1
+        WHERE "postId" = $2 AND "userId" = $3
+        `,
+        [likeStatus, postId, userId],
+      );
       return;
-    } else return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async deleteAllLikesWhenPostIsDeleted(postId: string): Promise<void> {
-    await this.likesForPostsModel.deleteMany({ postId: postId });
-    return;
+    try {
+      await this.dataSource.query(
+        `
+        DELETE FROM "LIKES_FOR_POSTS"
+        WHERE "postId" = $1
+        `,
+        [postId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async getByUserId(userId: string): Promise<PostLike[]> {
-    return this.likesForPostsModel.find({ userId: userId });
-  }
-  async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    await this.likesForPostsModel.updateMany(
-      { userId: userId },
-      { isBanned: isBanned },
-    );
-    return;
+    try {
+      return await this.dataSource.query(
+        `
+        SELECT * FROM "LIKES_FOR_POSTS"
+        WHERE "userId" = $1
+        `,
+        [userId],
+      );
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async getNewLikesCounter(postId: string): Promise<number> {
-    return this.likesForPostsModel.countDocuments({
-      postId: postId,
-      likeStatus: LikeStatus.like,
-      isBanned: false,
-    });
+    try {
+      const counterResult = await this.dataSource.query(
+        `
+        SELECT COUNT(*)
+        FROM "LIKES_FOR_POSTS" as l
+        LEFT JOIN "USERS_GLOBAL_BAN" as b
+        ON l."userId" = b."userId"
+        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.like}) AND (b."isBanned" = false or b."isBanned" = null)
+        `,
+        [postId],
+      );
+      return parseInt(counterResult[0].count, 10);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async getNewDislikesCounter(postId: string): Promise<number> {
-    return this.likesForPostsModel.countDocuments({
-      postId: postId,
-      likeStatus: LikeStatus.dislike,
-      isBanned: false,
-    });
+    try {
+      const counterResult = await this.dataSource.query(
+        `
+        SELECT COUNT(*)
+        FROM "LIKES_FOR_POSTS" as l
+        LEFT JOIN "USERS_GLOBAL_BAN" as b
+        ON l."userId" = b."userId"
+        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND (b."isBanned" = false or b."isBanned" = null)
+        `,
+        [postId],
+      );
+      return parseInt(counterResult[0].count, 10);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 }
