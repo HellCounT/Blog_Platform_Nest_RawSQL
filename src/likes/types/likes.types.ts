@@ -14,6 +14,15 @@ export class CommentLike {
   ) {}
 }
 
+export type CommentLikeJoinedType = {
+  id: string;
+  commentId: string;
+  userId: string;
+  userLogin: string;
+  addedAt: Date;
+  likeStatus: LikeStatus;
+};
+
 export class PostLike {
   constructor(
     public id: string,
@@ -23,3 +32,12 @@ export class PostLike {
     public likeStatus: LikeStatus,
   ) {}
 }
+
+export type PostLikeJoinedType = {
+  id: string;
+  postId: string;
+  userId: string;
+  userLogin: string;
+  addedAt: Date;
+  likeStatus: LikeStatus;
+};

@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Model } from 'mongoose';
 import {
   pickOrderForPostsQuery,
   pickOrderForUsersQuery,
@@ -10,23 +9,14 @@ import {
   PostPaginatorType,
   PostViewModelType,
 } from './types/posts.types';
-import { InjectModel } from '@nestjs/mongoose';
-import { LikeStatus } from '../likes/types/likes.types';
-import {
-  LikeForPostDocument,
-  LikeForPost,
-} from '../likes/entity/likes-for-post.schema';
+import { LikeStatus, PostLikeJoinedType } from '../likes/types/likes.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { Blog } from '../blogs/types/blogs.types';
 
 @Injectable()
 export class PostsQuery {
-  constructor(
-    @InjectDataSource() protected dataSource: DataSource,
-    @InjectModel(LikeForPost.name)
-    private likeForPostModel: Model<LikeForPostDocument>,
-  ) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async viewAllPosts(
     q: QueryParser,
     activeUserId: string,
@@ -161,7 +151,10 @@ export class PostsQuery {
       }
     } else throw new NotFoundException();
   }
-  async getUserLikeForPost(userId: string, postId: string) {
+  async getUserLikeForPost(
+    userId: string,
+    postId: string,
+  ): Promise<PostLikeJoinedType> {
     return this.likeForPostModel.findOne({
       postId: postId,
       userId: userId,
@@ -170,7 +163,7 @@ export class PostsQuery {
   }
   private async _getNewestLikes(
     postId: string,
-  ): Promise<Array<LikeForPostDocument>> {
+  ): Promise<Array<PostLikeJoinedType>> {
     return this.likeForPostModel
       .find({
         postId: postId,

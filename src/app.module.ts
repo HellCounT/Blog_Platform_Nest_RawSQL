@@ -20,10 +20,6 @@ import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DevicesController } from './security/devices/devices.controller';
-import {
-  LikeForPost,
-  LikesForPostsSchema,
-} from './likes/entity/likes-for-post.schema';
 import { LikesForCommentsRepository } from './likes/likes-for-comments.repository';
 import { LikesForPostsRepository } from './likes/likes-for-posts.repository';
 import { JwtAdapter } from './auth/jwt.adapter';
@@ -186,9 +182,6 @@ const adapters = [JwtAdapter, EmailManager];
       synchronize: false,
     }),
     MongooseModule.forRoot(process.env.MONGO_URL),
-    MongooseModule.forFeature([
-      { name: LikeForPost.name, schema: LikesForPostsSchema },
-    ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'swagger-static'),
       serveRoot: process.env.NODE_ENV === 'development' ? '/' : '/swagger',
