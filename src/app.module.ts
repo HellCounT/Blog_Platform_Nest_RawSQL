@@ -15,18 +15,10 @@ import { PostsQuery } from './posts/posts.query';
 import { CommentsQuery } from './comments/comments.query';
 import { UsersQuery } from './users/users.query';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Blog, BlogSchema } from './blogs/entity/blogs.schema';
-import { Post, PostSchema } from './posts/entity/posts.schema';
 import { Comment, CommentSchema } from './comments/entity/comments.schema';
-import { User, UserSchema } from './users/entity/users.schema';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthController } from './auth/auth.controller';
-import { Device, DeviceSchema } from './security/devices/entity/devices.schema';
-import {
-  ExpiredToken,
-  ExpiredTokenSchema,
-} from './security/tokens/entity/expiredTokenSchema';
 import { AuthModule } from './auth/auth.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { DevicesController } from './security/devices/devices.controller';
@@ -85,10 +77,6 @@ import { SuperAdminUsersController } from './superadmin/users/super-admin.users.
 import { BloggerBlogsController } from './blogger/blogs/blogger.blogs.controller';
 import { BloggerBlogsQuery } from './blogger/blogs/blogger.blogs.query';
 import { BloggerUsersController } from './blogger/users/blogger.users.controller';
-import {
-  UserBannedByBlogger,
-  UserBannedByBloggerSchema,
-} from './blogger/users/users-banned-by-blogger/entity/user-banned-by-blogger.schema';
 import { UsersBannedByBloggerRepository } from './blogger/users/users-banned-by-blogger/users-banned-by-blogger.repository';
 import { BanUserForBlogUseCase } from './blogger/users/use-cases/ban.user.for.blog.use-case';
 import { BloggerUsersQuery } from './blogger/users/blogger.users.query';
@@ -198,15 +186,9 @@ const adapters = [JwtAdapter, EmailManager];
     }),
     MongooseModule.forRoot(process.env.MONGO_URL),
     MongooseModule.forFeature([
-      { name: Blog.name, schema: BlogSchema },
-      { name: Post.name, schema: PostSchema },
       { name: Comment.name, schema: CommentSchema },
       { name: LikeForPost.name, schema: LikesForPostsSchema },
       { name: LikeForComment.name, schema: LikesForCommentsSchema },
-      { name: User.name, schema: UserSchema },
-      { name: Device.name, schema: DeviceSchema },
-      { name: ExpiredToken.name, schema: ExpiredTokenSchema },
-      { name: UserBannedByBlogger.name, schema: UserBannedByBloggerSchema },
     ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'swagger-static'),
