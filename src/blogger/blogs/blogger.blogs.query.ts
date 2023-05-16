@@ -9,26 +9,15 @@ import {
   CommentsForBloggerViewType,
   OutputCommentsPaginatorBloggerDto,
 } from './dto/output.comments.paginator.blogger.dto';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  Comment,
-  CommentDocument,
-} from '../../comments/entity/comments.schema';
-import { Model } from 'mongoose';
 import { CommentLike, LikeStatus } from '../../likes/types/likes.types';
-import { LikeForComment } from '../../likes/entity/likes-for-comments.schema';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { PostDbJoinedType } from '../../posts/types/posts.types';
+import { Comment } from '../../comments/types/comments.types';
 
 @Injectable()
 export class BloggerBlogsQuery extends BlogsQuery {
-  constructor(
-    @InjectModel(Comment.name) protected commentModel: Model<CommentDocument>,
-    @InjectModel(LikeForComment.name)
-    protected likeForCommentModel: Model<LikeForComment>,
-    @InjectDataSource() protected dataSource: DataSource,
-  ) {
+  constructor(@InjectDataSource() protected dataSource: DataSource) {
     super(dataSource);
   }
   async getAllBlogsForBlogger(
@@ -94,7 +83,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
     };
   }
   private async _mapCommentToBloggerViewType(
-    comment: CommentDocument,
+    comment: Comment,
     userId: string,
   ): Promise<CommentsForBloggerViewType> {
     const postSearchResult: PostDbJoinedType[] = await this.dataSource.query(

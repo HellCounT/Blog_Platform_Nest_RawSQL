@@ -1,23 +1,15 @@
-import mongoose, { Model } from 'mongoose';
+import mongoose from 'mongoose';
 import { QueryParser } from '../application-helpers/query.parser';
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Comment, CommentDocument } from './entity/comments.schema';
 import { CommentViewDto } from './dto/output.comment.view.dto';
 import { CommentPaginatorDto } from './dto/output.comment-paginator.dto';
 import { CommentLike, LikeStatus } from '../likes/types/likes.types';
-import {
-  LikeForComment,
-  LikeForCommentDocument,
-} from '../likes/entity/likes-for-comments.schema';
+import { DataSource } from 'typeorm';
+import { Comment } from './types/comments.types';
 
 @Injectable()
 export class CommentsQuery {
-  constructor(
-    @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
-    @InjectModel(LikeForComment.name)
-    private likeForCommentModel: Model<LikeForCommentDocument>,
-  ) {}
+  constructor(protected dataSource: DataSource) {}
   async findCommentById(
     id: string,
     activeUserId: string,
@@ -72,7 +64,7 @@ export class CommentsQuery {
     });
   }
   async _mapCommentToViewType(
-    comment: CommentDocument,
+    comment: Comment,
     activeUserId: string,
   ): Promise<CommentViewDto> {
     const like = await this.getUserLikeForComment(

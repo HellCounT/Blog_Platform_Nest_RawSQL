@@ -14,7 +14,6 @@ import { PostsQuery } from './posts/posts.query';
 import { CommentsQuery } from './comments/comments.query';
 import { UsersQuery } from './users/users.query';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Comment, CommentSchema } from './comments/entity/comments.schema';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthController } from './auth/auth.controller';
@@ -25,10 +24,6 @@ import {
   LikeForPost,
   LikesForPostsSchema,
 } from './likes/entity/likes-for-post.schema';
-import {
-  LikeForComment,
-  LikesForCommentsSchema,
-} from './likes/entity/likes-for-comments.schema';
 import { LikesForCommentsRepository } from './likes/likes-for-comments.repository';
 import { LikesForPostsRepository } from './likes/likes-for-posts.repository';
 import { JwtAdapter } from './auth/jwt.adapter';
@@ -192,9 +187,7 @@ const adapters = [JwtAdapter, EmailManager];
     }),
     MongooseModule.forRoot(process.env.MONGO_URL),
     MongooseModule.forFeature([
-      { name: Comment.name, schema: CommentSchema },
       { name: LikeForPost.name, schema: LikesForPostsSchema },
-      { name: LikeForComment.name, schema: LikesForCommentsSchema },
     ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'swagger-static'),

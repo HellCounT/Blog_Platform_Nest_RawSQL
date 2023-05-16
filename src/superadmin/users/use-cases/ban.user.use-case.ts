@@ -8,11 +8,10 @@ import { DevicesRepository } from '../../../security/devices/devices.repository'
 import { InputBanUserDto } from '../dto/input.ban-user.dto';
 import { NotFoundException } from '@nestjs/common';
 import { ExpiredTokensRepository } from '../../../security/tokens/expired.tokens.repository';
-import { LikeForPostDocument } from '../../../likes/entity/likes-for-post.schema';
-import { LikeForCommentDocument } from '../../../likes/entity/likes-for-comments.schema';
+import { CommentLike, PostLike } from '../../../likes/types/likes.types';
 
 export class BanUserCommand {
-  constructor(public banUserDto: InputBanUserDto, public id: string) {}
+  constructor(public banUserDto: InputBanUserDto, public userId: string) {}
 }
 
 @CommandHandler(BanUserCommand)
@@ -31,12 +30,14 @@ export class BanUserUseCase {
     if (!user) throw new NotFoundException();
     if (user.globalBanInfo.isBanned === command.banUserDto.isBanned)
       return true;
-    const likesInPosts = await this.likesForPostsRepo.getByUserId(command.id);
-    const likesInComments = await this.likesForCommentsRepo.getByUserId(
-      command.id,
+    const likesInPosts = await this.likesForPostsRepo.getByUserId(
+      command.userId,
     );
-    await this._banEntitiesOnUserBan(
-      command.id,
+    const likesInComments = await this.likesForCommentsRepo.getByUserId(
+      command.userId,
+    );
+    await this.usersRepo.banUserById(
+      command.userId,
       command.banUserDto.isBanned,
       command.banUserDto.banReason,
     );
@@ -45,24 +46,13 @@ export class BanUserUseCase {
       likesInComments,
     );
     if (command.banUserDto.isBanned === true)
-      await this._killAllSessions(command.id);
+      await this._killAllSessions(command.userId);
     return true;
-  }
-  private async _banEntitiesOnUserBan(
-    userId: string,
-    isBanned: boolean,
-    banReason: string,
-  ): Promise<void> {
-    await this.usersRepo.banUserById(userId, isBanned, banReason);
-    await this.commentsRepo.banByUserId(userId, isBanned);
-    await this.likesForPostsRepo.banByUserId(userId, isBanned);
-    await this.likesForCommentsRepo.banByUserId(userId, isBanned);
-    return;
   }
 
   private async _recalculateLikesCountersOnEntities(
-    likesInPosts: LikeForPostDocument[],
-    likesInComments: LikeForCommentDocument[],
+    likesInPosts: PostLike[],
+    likesInComments: CommentLike[],
   ): Promise<void> {
     for (let i = 0; i < likesInPosts.length; i++) {
       const postLikesCounter = await this.likesForPostsRepo.getNewLikesCounter(
