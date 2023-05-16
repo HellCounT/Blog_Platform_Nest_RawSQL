@@ -1,5 +1,3 @@
-import mongoose from 'mongoose';
-
 export enum LikeStatus {
   none = 'None',
   like = 'Like',
@@ -8,7 +6,7 @@ export enum LikeStatus {
 
 export class CommentLikeDb {
   constructor(
-    public _id: mongoose.Types.ObjectId,
+    public id: string,
     public commentId: string,
     public userId: string,
     public isBanned: boolean,
@@ -18,7 +16,7 @@ export class CommentLikeDb {
 
 export class PostLikeDb {
   constructor(
-    public _id: mongoose.Types.ObjectId,
+    public id: string,
     public postId: string,
     public userId: string,
     public userLogin: string,

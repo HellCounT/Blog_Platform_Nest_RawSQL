@@ -5,7 +5,7 @@ import {
   LikeForCommentDocument,
 } from './entity/likes-for-comments.schema';
 import { Model } from 'mongoose';
-import { LikeStatus } from './types/likes.types';
+import { CommentLikeDb, LikeStatus } from './types/likes.types';
 
 @Injectable()
 export class LikesForCommentsRepository {
@@ -13,7 +13,7 @@ export class LikesForCommentsRepository {
     @InjectModel(LikeForComment.name)
     private likesForCommentsModel: Model<LikeForComment>,
   ) {}
-  async createNewLike(newLike: LikeForComment): Promise<void> {
+  async createNewLike(newLike: CommentLikeDb): Promise<void> {
     const likeInCommentInstance = new this.likesForCommentsModel(newLike);
     await likeInCommentInstance.save();
     return;
