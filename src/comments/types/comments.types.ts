@@ -1,20 +1,22 @@
-import mongoose from 'mongoose';
-
-export class CommentDb {
+export class Comment {
   constructor(
-    public _id: mongoose.Types.ObjectId,
+    public id: string,
     public content: string,
-    public commentatorInfo: {
-      userId: string;
-      userLogin: string;
-      isBanned: boolean;
-    },
+    public userId: string,
     public postId: string,
-    public bloggerId: string,
     public createdAt: string,
-    public likesInfo: {
-      likesCount: number;
-      dislikesCount: number;
-    },
+    public likesCount: number,
+    public dislikesCount: number,
   ) {}
 }
+
+export type CommentJoinedType = {
+  id: string;
+  content: string;
+  userId: string;
+  userLogin: string;
+  postId: string;
+  createdAt: string;
+  likesCount: number;
+  dislikesCount: number;
+};

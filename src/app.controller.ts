@@ -1,10 +1,7 @@
 import { Controller, Delete, Get, HttpCode } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectModel } from '@nestjs/mongoose';
-import { Blog, BlogDocument } from './blogs/entity/blogs.schema';
 import { Model } from 'mongoose';
-import { Post, PostDocument } from './posts/entity/posts.schema';
-import { User, UserDocument } from './users/entity/users.schema';
 import { Comment, CommentDocument } from './comments/entity/comments.schema';
 import {
   LikeForPost,
@@ -14,10 +11,6 @@ import {
   LikeForComment,
   LikeForCommentDocument,
 } from './likes/entity/likes-for-comments.schema';
-import {
-  ExpiredToken,
-  ExpiredTokenDocument,
-} from './security/tokens/entity/expiredTokenSchema';
 import {
   UserBannedByBlogger,
   UserBannedByBloggerDocument,
@@ -29,16 +22,11 @@ import { DataSource } from 'typeorm';
 export class AppController {
   constructor(
     private readonly appService: AppService,
-    @InjectModel(Blog.name) private blogModel: Model<BlogDocument>,
-    @InjectModel(Post.name) private postModel: Model<PostDocument>,
-    @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Comment.name) private commentModel: Model<CommentDocument>,
     @InjectModel(LikeForPost.name)
     private likesForPostsModel: Model<LikeForPostDocument>,
     @InjectModel(LikeForComment.name)
     private likesForCommentsModel: Model<LikeForCommentDocument>,
-    @InjectModel(ExpiredToken.name)
-    private expiredTokensModel: Model<ExpiredTokenDocument>,
     @InjectModel(UserBannedByBlogger.name)
     private userBannedByBloggerModel: Model<UserBannedByBloggerDocument>,
     @InjectDataSource() private dataSource: DataSource,
@@ -60,8 +48,6 @@ export class AppController {
       // this.dataSource.query(`DELETE FROM "DEVICES"`),
       this.dataSource.query(`DELETE FROM "POSTS"`),
       this.dataSource.query(`DELETE FROM "BLOGS"`),
-      this.blogModel.deleteMany({}),
-      this.postModel.deleteMany({}),
       this.commentModel.deleteMany({}),
       this.likesForPostsModel.deleteMany({}),
       this.likesForCommentsModel.deleteMany({}),
