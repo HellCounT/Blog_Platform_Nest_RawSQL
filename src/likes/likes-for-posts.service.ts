@@ -1,7 +1,7 @@
 import { LikesForPostsRepository } from './likes-for-posts.repository';
 import { LikeStatus, PostLike } from './types/likes.types';
-import mongoose from 'mongoose';
 import { Injectable } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LikesForPostsService {
@@ -13,11 +13,9 @@ export class LikesForPostsService {
     likeStatus: LikeStatus,
   ): Promise<void> {
     const newLike = new PostLike(
-      new mongoose.Types.ObjectId(),
+      uuidv4(),
       postId,
       userId,
-      userLogin,
-      false,
       new Date(),
       likeStatus,
     );

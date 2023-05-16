@@ -6,10 +6,11 @@ import { CommentPaginatorDto } from './dto/output.comment-paginator.dto';
 import { CommentLike, LikeStatus } from '../likes/types/likes.types';
 import { DataSource } from 'typeorm';
 import { Comment } from './types/comments.types';
+import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
 export class CommentsQuery {
-  constructor(protected dataSource: DataSource) {}
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
   async findCommentById(
     id: string,
     activeUserId: string,

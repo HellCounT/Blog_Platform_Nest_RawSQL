@@ -26,7 +26,7 @@ export class BanUserUseCase {
     protected expiredTokensRepo: ExpiredTokensRepository,
   ) {}
   async execute(command: BanUserCommand): Promise<boolean> {
-    const user = await this.usersRepo.getUserById(command.id);
+    const user = await this.usersRepo.getUserById(command.userId);
     if (!user) throw new NotFoundException();
     if (user.globalBanInfo.isBanned === command.banUserDto.isBanned)
       return true;
