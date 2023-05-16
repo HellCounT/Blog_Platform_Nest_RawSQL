@@ -20,7 +20,6 @@ import {
 import { CommentsQuery } from '../comments/comments.query';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { InputCommentDto } from '../comments/dto/input-comment.dto';
-import { CommentsService } from '../comments/comments.service';
 import { CommentPaginatorDto } from '../comments/dto/output.comment-paginator.dto';
 import { InputLikeStatusDto } from '../likes/dto/input.like-status.dto';
 import { GuestGuard } from '../auth/guards/guest.guard';
@@ -33,7 +32,6 @@ export class PostsController {
   constructor(
     protected postsService: PostsService,
     protected readonly postsQueryRepo: PostsQuery,
-    protected commentsService: CommentsService,
     protected readonly commentsQueryRepo: CommentsQuery,
     protected readonly usersRepo: UsersRepository,
     protected commandBus: CommandBus,
