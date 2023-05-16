@@ -74,25 +74,35 @@ export class CommentsRepository {
     commentId: string,
     content: string,
   ): Promise<boolean | null> {
-    const commentInstance = await this.commentModel.findOne({
-      _id: new mongoose.Types.ObjectId(commentId),
-    });
-    if (!commentInstance) return null;
-    else {
-      commentInstance.content = content;
-      await commentInstance.save();
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "COMMENTS"
+        SET "content" = $1
+        WHERE "id" = $2
+        `,
+        [content, commentId],
+      );
       return true;
+    } catch (e) {
+      console.log(e);
+      return null;
     }
   }
 
   async deleteComment(commentId: string): Promise<boolean | null> {
-    const commentInstance = await this.commentModel.findOne({
-      _id: new mongoose.Types.ObjectId(commentId),
-    });
-    if (commentInstance) {
-      await commentInstance.deleteOne();
+    try {
+      await this.dataSource.query(
+        `
+        DELETE FROM "COMMENTS"
+        WHERE "id" = $1
+        `[commentId],
+      );
       return true;
-    } else return false;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 
   async updateLikesCounters(

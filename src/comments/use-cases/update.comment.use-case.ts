@@ -1,6 +1,5 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { CommentsRepository } from '../comments.repository';
-import { CommentsQuery } from '../comments.query';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 
 export class UpdateCommentCommand {
@@ -13,17 +12,13 @@ export class UpdateCommentCommand {
 
 @CommandHandler(UpdateCommentCommand)
 export class UpdateCommentUseCase {
-  constructor(
-    protected commentsRepo: CommentsRepository,
-    protected commentsQueryRepo: CommentsQuery,
-  ) {}
+  constructor(protected commentsRepo: CommentsRepository) {}
   async execute(command: UpdateCommentCommand): Promise<boolean> {
-    const foundComment = await this.commentsQueryRepo.findCommentById(
+    const foundComment = await this.commentsRepo.getCommentById(
       command.commentId,
-      command.userId,
     );
     if (!foundComment) throw new NotFoundException();
-    if (foundComment.commentatorInfo.userId === command.userId) {
+    if (foundComment.userId === command.userId) {
       await this.commentsRepo.updateComment(command.commentId, command.content);
       return true;
     } else
