@@ -15,7 +15,7 @@ import {
   CommentDocument,
 } from '../../comments/entity/comments.schema';
 import { Model } from 'mongoose';
-import { CommentLikeDb, LikeStatus } from '../../likes/types/likes.types';
+import { CommentLike, LikeStatus } from '../../likes/types/likes.types';
 import { LikeForComment } from '../../likes/entity/likes-for-comments.schema';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -144,7 +144,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
   async getUserLikeForComment(
     userId: string,
     commentId: string,
-  ): Promise<CommentLikeDb | null> {
+  ): Promise<CommentLike | null> {
     return this.likeForCommentModel.findOne({
       commentId: commentId,
       userId: userId,

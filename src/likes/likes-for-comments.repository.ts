@@ -1,64 +1,116 @@
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  LikeForComment,
-  LikeForCommentDocument,
-} from './entity/likes-for-comments.schema';
-import { Model } from 'mongoose';
-import { CommentLikeDb, LikeStatus } from './types/likes.types';
+import { CommentLike, LikeStatus } from './types/likes.types';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class LikesForCommentsRepository {
-  constructor(
-    @InjectModel(LikeForComment.name)
-    private likesForCommentsModel: Model<LikeForComment>,
-  ) {}
-  async createNewLike(newLike: CommentLikeDb): Promise<void> {
-    const likeInCommentInstance = new this.likesForCommentsModel(newLike);
-    await likeInCommentInstance.save();
-    return;
+  constructor(@InjectDataSource() protected dataSource: DataSource) {}
+  async createNewLike(newLike: CommentLike): Promise<void> {
+    try {
+      await this.dataSource.query(
+        `
+        INSERT INTO "LIKES_FOR_COMMENTS"
+        ("id", "commentId", "userId", "addedAt", "likeStatus")
+        VALUES($1, $2, $3, $4, $5)
+        `,
+        [
+          newLike.id,
+          newLike.commentId,
+          newLike.userId,
+          newLike.addedAt,
+          newLike.likeStatus,
+        ],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async updateLikeStatus(
     commentId: string,
     userId: string,
     likeStatus: LikeStatus,
   ): Promise<void> {
-    const likeInCommentInstance = await this.likesForCommentsModel.findOne({
-      commentId: commentId,
-      userId: userId,
-    });
-    if (likeInCommentInstance) {
-      likeInCommentInstance.likeStatus = likeStatus;
-      await likeInCommentInstance.save();
+    try {
+      await this.dataSource.query(
+        `
+        UPDATE "LIKES_FOR_COMMENTS"
+        SET "likeStatus" = $1
+        WHERE "commentId" = $2 AND "userId" = $3
+        `,
+        [likeStatus, commentId, userId],
+      );
       return;
-    } else return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async deleteAllLikesWhenCommentIsDeleted(commentId: string): Promise<void> {
-    await this.likesForCommentsModel.deleteMany({ commentId: commentId });
-    return;
+    try {
+      await this.dataSource.query(
+        `
+        DELETE FROM "LIKES_FOR_COMMENTS"
+        WHERE "commentId" = $1
+        `,
+        [commentId],
+      );
+      return;
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
-  async getByUserId(userId: string): Promise<LikeForCommentDocument[]> {
-    return this.likesForCommentsModel.find({ userId: userId });
-  }
-  async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    await this.likesForCommentsModel.updateMany(
-      { userId: userId },
-      { isBanned: isBanned },
-    );
-    return;
+  async getByUserId(userId: string): Promise<CommentLike[]> {
+    try {
+      return await this.dataSource.query(
+        `
+        SELECT * FROM "LIKES_FOR_COMMENTS"
+        WHERE "userId" = $1
+        `,
+        [userId],
+      );
+    } catch (e) {
+      console.log(e);
+      return;
+    }
   }
   async getNewLikesCounter(commentId: string): Promise<number> {
-    return this.likesForCommentsModel.countDocuments({
-      commentId: commentId,
-      likeStatus: LikeStatus.like,
-      isBanned: false,
-    });
+    try {
+      const counterResult = await this.dataSource.query(
+        `
+        SELECT COUNT(*)
+        FROM "LIKES_FOR_COMMENTS" as l
+        LEFT JOIN "USERS_GLOBAL_BAN" as b
+        ON l."userId" = b."userId"
+        WHERE (l."commentId" = $1 AND l."likeStatus" = ${LikeStatus.like}) AND (b."isBanned" = false or b."isBanned" = null)
+        `,
+        [commentId],
+      );
+      return parseInt(counterResult[0].count, 10);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async getNewDislikesCounter(commentId: string): Promise<number> {
-    return this.likesForCommentsModel.countDocuments({
-      commentId: commentId,
-      likeStatus: LikeStatus.dislike,
-      isBanned: false,
-    });
+    try {
+      const counterResult = await this.dataSource.query(
+        `
+        SELECT COUNT(*)
+        FROM "LIKES_FOR_COMMENTS" as l
+        LEFT JOIN "USERS_GLOBAL_BAN" as b
+        ON l."userId" = b."userId"
+        WHERE (l."commentId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND (b."isBanned" = false or b."isBanned" = null)
+        `,
+        [commentId],
+      );
+      return parseInt(counterResult[0].count, 10);
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 }

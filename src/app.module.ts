@@ -87,7 +87,6 @@ import { UpdateCommentUseCase } from './comments/use-cases/update.comment.use-ca
 import { DeleteCommentUseCase } from './comments/use-cases/delete.comment.use-case';
 import { UpdateCommentLikeStatusUseCase } from './comments/use-cases/update.comment.likestatus.use-case';
 import { UpdatePostLikeStatusUseCase } from './posts/use-cases/update.post.likestatus.use-case';
-import { CreateNewLikeForCommentUseCase } from './likes/use-cases/create.new.like.for.comment.use-case';
 
 const controllers = [
   AppController,
@@ -140,7 +139,6 @@ const useCases = [
   DeleteCommentUseCase,
   UpdateCommentLikeStatusUseCase,
   UpdatePostLikeStatusUseCase,
-  CreateNewLikeForCommentUseCase,
 ];
 
 const repositories = [

@@ -1,10 +1,26 @@
 import { Injectable } from '@nestjs/common';
 import { LikesForCommentsRepository } from './likes-for-comments.repository';
-import { LikeStatus } from './types/likes.types';
+import { CommentLike, LikeStatus } from './types/likes.types';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class LikesForCommentsService {
   constructor(protected likesForCommentsRepo: LikesForCommentsRepository) {}
+  async createNewLike(
+    commentId: string,
+    userId: string,
+    likeStatus: LikeStatus,
+  ): Promise<void> {
+    const newLike = new CommentLike(
+      uuidv4(),
+      commentId,
+      userId,
+      new Date(),
+      likeStatus,
+    );
+    await this.likesForCommentsRepo.createNewLike(newLike);
+    return;
+  }
   async updateLikeStatus(
     commentId: string,
     userId: string,

@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Comment, CommentDocument } from './entity/comments.schema';
 import { CommentViewDto } from './dto/output.comment.view.dto';
 import { CommentPaginatorDto } from './dto/output.comment-paginator.dto';
-import { CommentLikeDb, LikeStatus } from '../likes/types/likes.types';
+import { CommentLike, LikeStatus } from '../likes/types/likes.types';
 import {
   LikeForComment,
   LikeForCommentDocument,
@@ -64,7 +64,7 @@ export class CommentsQuery {
   async getUserLikeForComment(
     userId: string,
     commentId: string,
-  ): Promise<CommentLikeDb | null> {
+  ): Promise<CommentLike | null> {
     return this.likeForCommentModel.findOne({
       commentId: commentId,
       userId: userId,
