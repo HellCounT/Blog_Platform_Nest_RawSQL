@@ -84,6 +84,7 @@ import { BanBlogUseCase } from './superadmin/blogs/use-cases/ban.blog.use-case';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import process from 'process';
 import { TestInterceptor } from './test.interceptor';
+import { CreateCommentUseCase } from './comments/use-cases/create.comment.use-case';
 
 const controllers = [
   AppController,
@@ -133,6 +134,7 @@ const useCases = [
   DeleteUserUseCase,
   BanUserForBlogUseCase,
   BanBlogUseCase,
+  CreateCommentUseCase,
 ];
 
 const repositories = [

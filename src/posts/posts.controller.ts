@@ -25,6 +25,8 @@ import { CommentPaginatorDto } from '../comments/dto/output.comment-paginator.dt
 import { InputLikeStatusDto } from '../likes/dto/input.like-status.dto';
 import { GuestGuard } from '../auth/guards/guest.guard';
 import { UsersRepository } from '../users/users.repository';
+import { CommandBus } from '@nestjs/cqrs';
+import { CreateCommentCommand } from '../comments/use-cases/create.comment.use-case';
 
 @Controller('posts')
 export class PostsController {
@@ -34,6 +36,7 @@ export class PostsController {
     protected commentsService: CommentsService,
     protected readonly commentsQueryRepo: CommentsQuery,
     protected readonly usersRepo: UsersRepository,
+    protected commandBus: CommandBus,
   ) {}
   @UseGuards(GuestGuard)
   @Get()
@@ -69,10 +72,12 @@ export class PostsController {
     @Req() req,
     @Param('postId') postId: string,
   ) {
-    return await this.commentsService.createComment(
-      createCommentDto.content,
-      req.user.userId,
-      postId,
+    return await this.commandBus.execute(
+      new CreateCommentCommand(
+        createCommentDto.content,
+        req.user.userId,
+        postId,
+      ),
     );
   }
   @UseGuards(JwtAuthGuard)
