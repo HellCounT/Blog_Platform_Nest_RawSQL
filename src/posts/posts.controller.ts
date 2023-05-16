@@ -11,7 +11,6 @@ import {
   Req,
   UnauthorizedException,
 } from '@nestjs/common';
-import { PostsService } from './posts.service';
 import { PostsQuery } from './posts.query';
 import {
   parseQueryPagination,
@@ -26,11 +25,11 @@ import { GuestGuard } from '../auth/guards/guest.guard';
 import { UsersRepository } from '../users/users.repository';
 import { CommandBus } from '@nestjs/cqrs';
 import { CreateCommentCommand } from '../comments/use-cases/create.comment.use-case';
+import { UpdatePostLikeStatusCommand } from './use-cases/update.post.likestatus.use-case';
 
 @Controller('posts')
 export class PostsController {
   constructor(
-    protected postsService: PostsService,
     protected readonly postsQueryRepo: PostsQuery,
     protected readonly commentsQueryRepo: CommentsQuery,
     protected readonly usersRepo: UsersRepository,
@@ -88,11 +87,13 @@ export class PostsController {
   ) {
     const foundUser = await this.usersRepo.getUserById(req.user.userId);
     if (foundUser.globalBanInfo.isBanned) throw new UnauthorizedException();
-    return await this.postsService.updateLikeStatus(
-      postId,
-      req.user.userId,
-      foundUser.accountData.login,
-      likeStatusDto.likeStatus,
+    return await this.commandBus.execute(
+      new UpdatePostLikeStatusCommand(
+        postId,
+        req.user.userId,
+        foundUser.accountData.login,
+        likeStatusDto.likeStatus,
+      ),
     );
   }
 }

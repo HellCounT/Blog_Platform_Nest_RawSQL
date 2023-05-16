@@ -9,7 +9,6 @@ import { BlogsController } from './blogs/blogs.controller';
 import { BlogsQuery } from './blogs/blogs.query';
 import { PostsController } from './posts/posts.controller';
 import { CommentsController } from './comments/comments.controller';
-import { PostsService } from './posts/posts.service';
 import { PostsRepository } from './posts/posts.repository';
 import { PostsQuery } from './posts/posts.query';
 import { CommentsQuery } from './comments/comments.query';
@@ -103,7 +102,6 @@ const controllers = [
 
 const services = [
   AppService,
-  PostsService,
   LikesForCommentsService,
   LikesForPostsService,
   TokenBanService,

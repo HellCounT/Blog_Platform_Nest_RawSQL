@@ -13,14 +13,12 @@ import {
   QueryParser,
 } from '../application-helpers/query.parser';
 import { BlogsQuery } from './blogs.query';
-import { PostsService } from '../posts/posts.service';
 import { PostsQuery } from '../posts/posts.query';
 import { GuestGuard } from '../auth/guards/guest.guard';
 
 @Controller('blogs')
 export class BlogsController {
   constructor(
-    protected postsService: PostsService,
     protected readonly blogsQueryRepo: BlogsQuery,
     protected readonly postsQueryRepo: PostsQuery,
   ) {}
