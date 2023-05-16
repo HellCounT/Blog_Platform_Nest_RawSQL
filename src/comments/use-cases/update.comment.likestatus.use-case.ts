@@ -1,35 +1,40 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { CommentsRepository } from './comments.repository';
-import { LikeStatus } from '../likes/types/likes.types';
-import { CommentsQuery } from './comments.query';
-import { LikesForCommentsService } from '../likes/likes-for-comments.service';
+import { CommandHandler } from '@nestjs/cqrs';
+import { CommentsRepository } from '../comments.repository';
+import { CommentsQuery } from '../comments.query';
+import { LikesForCommentsService } from '../../likes/likes-for-comments.service';
+import { NotFoundException } from '@nestjs/common';
+import { LikeStatus } from '../../likes/types/likes.types';
 
-@Injectable()
-export class CommentsService {
+export class UpdateCommentLikeStatusCommand {
+  constructor(
+    public commentId: string,
+    public activeUserId: string,
+    public inputLikeStatus: LikeStatus,
+  ) {}
+}
+
+@CommandHandler(UpdateCommentLikeStatusCommand)
+export class UpdateCommentLikeStatusUseCase {
   constructor(
     protected commentsRepo: CommentsRepository,
     protected commentsQueryRepo: CommentsQuery,
     protected likesForCommentsService: LikesForCommentsService,
   ) {}
-  async updateLikeStatus(
-    commentId: string,
-    activeUserId: string,
-    inputLikeStatus: LikeStatus,
-  ): Promise<boolean> {
+  async execute(command: UpdateCommentLikeStatusCommand): Promise<boolean> {
     const foundComment = await this.commentsQueryRepo.findCommentById(
-      commentId,
-      activeUserId,
+      command.commentId,
+      command.activeUserId,
     );
     if (!foundComment) {
       throw new NotFoundException();
     } else {
       const foundUserLike = await this.commentsQueryRepo.getUserLikeForComment(
-        activeUserId,
-        commentId,
+        command.activeUserId,
+        command.commentId,
       );
       let currentLikesCount = foundComment.likesInfo.likesCount;
       let currentDislikesCount = foundComment.likesInfo.dislikesCount;
-      switch (inputLikeStatus) {
+      switch (command.inputLikeStatus) {
         case LikeStatus.like:
           if (!foundUserLike || foundUserLike.likeStatus === LikeStatus.none) {
             currentLikesCount++;
@@ -65,26 +70,26 @@ export class CommentsService {
       }
       if (!foundUserLike) {
         await this.likesForCommentsService.createNewLike(
-          commentId,
-          activeUserId,
-          inputLikeStatus,
+          command.commentId,
+          command.activeUserId,
+          command.inputLikeStatus,
         );
         await this.commentsRepo.updateLikesCounters(
           currentLikesCount,
           currentDislikesCount,
-          commentId,
+          command.commentId,
         );
         return true;
       } else {
         await this.likesForCommentsService.updateLikeStatus(
-          commentId,
-          activeUserId,
-          inputLikeStatus,
+          command.commentId,
+          command.activeUserId,
+          command.inputLikeStatus,
         );
         await this.commentsRepo.updateLikesCounters(
           currentLikesCount,
           currentDislikesCount,
-          commentId,
+          command.commentId,
         );
         return true;
       }

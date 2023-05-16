@@ -40,7 +40,6 @@ import { JwtService } from '@nestjs/jwt';
 import { DevicesRepository } from './security/devices/devices.repository';
 import { ExpiredTokensRepository } from './security/tokens/expired.tokens.repository';
 import { TokenBanService } from './security/tokens/token.ban.service';
-import { CommentsService } from './comments/comments.service';
 import { CommentsRepository } from './comments/comments.repository';
 import { IsUniqueEmailConstraint } from './auth/decorators/validation-decorators/is-unique-email.decorator';
 import { IsNewLoginConstraint } from './auth/decorators/validation-decorators/is-new-login.decorator';
@@ -87,6 +86,7 @@ import { TestInterceptor } from './test.interceptor';
 import { CreateCommentUseCase } from './comments/use-cases/create.comment.use-case';
 import { UpdateCommentUseCase } from './comments/use-cases/update.comment.use-case';
 import { DeleteCommentUseCase } from './comments/use-cases/delete.comment.use-case';
+import { UpdateCommentLikeStatusUseCase } from './comments/use-cases/update.comment.likestatus.use-case';
 
 const controllers = [
   AppController,
@@ -104,7 +104,6 @@ const controllers = [
 const services = [
   AppService,
   PostsService,
-  CommentsService,
   LikesForCommentsService,
   LikesForPostsService,
   TokenBanService,
@@ -139,6 +138,7 @@ const useCases = [
   CreateCommentUseCase,
   UpdateCommentUseCase,
   DeleteCommentUseCase,
+  UpdateCommentLikeStatusUseCase,
 ];
 
 const repositories = [
