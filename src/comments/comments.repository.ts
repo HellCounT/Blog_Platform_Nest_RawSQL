@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import mongoose from 'mongoose';
 import { Comment, CommentJoinedType } from './types/comments.types';
 import { LikeStatus } from '../likes/types/likes.types';
 import { CommentViewDto } from './dto/output.comment.view.dto';
@@ -110,22 +109,13 @@ export class CommentsRepository {
     newDislikesCount: number,
     commentId: string,
   ) {
-    const commentInstance = await this.commentModel.findOne({
-      _id: new mongoose.Types.ObjectId(commentId),
-    });
-    if (commentInstance) {
-      commentInstance.likesInfo.likesCount = newLikesCount;
-      commentInstance.likesInfo.dislikesCount = newDislikesCount;
-      await commentInstance.save();
-      return;
-    }
-    return;
-  }
-
-  async banByUserId(userId: string, isBanned: boolean): Promise<void> {
-    await this.commentModel.updateMany(
-      { 'commentatorInfo.userId': userId },
-      { 'commentatorInfo.isBanned': isBanned },
+    await this.dataSource.query(
+      `
+      UPDATE "COMMENTS"
+      SET "likesCount" = $1, "dislikesCount" = $2
+      WHERE "id" = $3
+      `,
+      [newLikesCount, newDislikesCount, commentId],
     );
     return;
   }
