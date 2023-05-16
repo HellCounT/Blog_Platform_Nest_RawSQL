@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CommentsRepository } from './comments.repository';
 import { LikeStatus } from '../likes/types/likes.types';
 import { CommentsQuery } from './comments.query';
@@ -15,23 +11,6 @@ export class CommentsService {
     protected commentsQueryRepo: CommentsQuery,
     protected likesForCommentsService: LikesForCommentsService,
   ) {}
-  async deleteComment(commentId: string, userId: string): Promise<boolean> {
-    const foundComment = await this.commentsQueryRepo.findCommentById(
-      commentId,
-      userId,
-    );
-    if (!foundComment) throw new NotFoundException();
-    if (foundComment.commentatorInfo.userId === userId) {
-      await this.commentsRepo.deleteComment(commentId);
-      await this.likesForCommentsService.deleteAllLikesWhenCommentIsDeleted(
-        commentId,
-      );
-      return true;
-    } else
-      throw new ForbiddenException([
-        "User is not allowed to delete other user's comment",
-      ]);
-  }
   async updateLikeStatus(
     commentId: string,
     activeUserId: string,

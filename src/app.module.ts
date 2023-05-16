@@ -86,6 +86,7 @@ import process from 'process';
 import { TestInterceptor } from './test.interceptor';
 import { CreateCommentUseCase } from './comments/use-cases/create.comment.use-case';
 import { UpdateCommentUseCase } from './comments/use-cases/update.comment.use-case';
+import { DeleteCommentUseCase } from './comments/use-cases/delete.comment.use-case';
 
 const controllers = [
   AppController,
@@ -137,6 +138,7 @@ const useCases = [
   BanBlogUseCase,
   CreateCommentUseCase,
   UpdateCommentUseCase,
+  DeleteCommentUseCase,
 ];
 
 const repositories = [

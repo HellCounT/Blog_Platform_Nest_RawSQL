@@ -18,6 +18,7 @@ import { InputLikeStatusDto } from '../likes/dto/input.like-status.dto';
 import { GuestGuard } from '../auth/guards/guest.guard';
 import { CommandBus } from '@nestjs/cqrs';
 import { UpdateCommentCommand } from './use-cases/update.comment.use-case';
+import { DeleteCommentCommand } from './use-cases/delete.comment.use-case';
 
 @Controller('comments')
 export class CommentsController {
@@ -55,7 +56,9 @@ export class CommentsController {
     @Param('commentId') commentId: string,
     @CurrentUser() userId: string,
   ) {
-    return await this.commentsService.deleteComment(commentId, userId);
+    return await this.commandBus.execute(
+      new DeleteCommentCommand(commentId, userId),
+    );
   }
   @UseGuards(JwtAuthGuard)
   @Put(':commentId/like-status')
