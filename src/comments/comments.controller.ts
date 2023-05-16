@@ -16,12 +16,15 @@ import { CurrentUser } from '../auth/decorators/get-decorators/current-user-id.p
 import { CommentsService } from './comments.service';
 import { InputLikeStatusDto } from '../likes/dto/input.like-status.dto';
 import { GuestGuard } from '../auth/guards/guest.guard';
+import { CommandBus } from '@nestjs/cqrs';
+import { UpdateCommentCommand } from './use-cases/update.comment.use-case';
 
 @Controller('comments')
 export class CommentsController {
   constructor(
     protected readonly commentsQueryRepo: CommentsQuery,
     protected commentsService: CommentsService,
+    protected commandBus: CommandBus,
   ) {}
   @UseGuards(GuestGuard)
   @Get(':id')
@@ -37,10 +40,12 @@ export class CommentsController {
     @Body() updateCommentDto: InputCommentDto,
     @Req() req,
   ) {
-    return this.commentsService.updateComment(
-      commentId,
-      req.user.userId,
-      updateCommentDto.content,
+    return this.commandBus.execute(
+      new UpdateCommentCommand(
+        commentId,
+        req.user.userId,
+        updateCommentDto.content,
+      ),
     );
   }
   @UseGuards(JwtAuthGuard)

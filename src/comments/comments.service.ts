@@ -15,24 +15,6 @@ export class CommentsService {
     protected commentsQueryRepo: CommentsQuery,
     protected likesForCommentsService: LikesForCommentsService,
   ) {}
-  async updateComment(
-    commentId: string,
-    userId: string,
-    content: string,
-  ): Promise<boolean> {
-    const foundComment = await this.commentsQueryRepo.findCommentById(
-      commentId,
-      userId,
-    );
-    if (!foundComment) throw new NotFoundException();
-    if (foundComment.commentatorInfo.userId === userId) {
-      await this.commentsRepo.updateComment(commentId, content);
-      return true;
-    } else
-      throw new ForbiddenException([
-        "User is not allowed to edit other user's comment",
-      ]);
-  }
   async deleteComment(commentId: string, userId: string): Promise<boolean> {
     const foundComment = await this.commentsQueryRepo.findCommentById(
       commentId,
