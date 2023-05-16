@@ -11,7 +11,7 @@ import {
 } from '../../application-helpers/query.parser';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BlogDb } from '../../blogs/types/blogs.types';
+import { Blog } from '../../blogs/types/blogs.types';
 import { UserBannedByBloggerDbJoinedType } from './users-banned-by-blogger/types/user-banned-by-blogger.types';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class BloggerUsersQuery {
     userId: string,
     q: UserQueryParser,
   ): Promise<PaginatorType<OutputBannedUserByBloggerDto>> {
-    const foundBlogResult: BlogDb[] = await this.dataSource.query(
+    const foundBlogResult: Blog[] = await this.dataSource.query(
       `
       SELECT * FROM "BLOGS"
       WHERE "id" = $1

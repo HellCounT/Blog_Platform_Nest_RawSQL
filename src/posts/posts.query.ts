@@ -18,7 +18,7 @@ import {
 } from '../likes/entity/likes-for-post.schema';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { BlogDb } from '../blogs/types/blogs.types';
+import { Blog } from '../blogs/types/blogs.types';
 
 @Injectable()
 export class PostsQuery {
@@ -102,7 +102,7 @@ export class PostsQuery {
     q: QueryParser,
     activeUserId: string,
   ): Promise<PostPaginatorType | null> {
-    const foundBlogResult: BlogDb[] = await this.dataSource.query(
+    const foundBlogResult: Blog[] = await this.dataSource.query(
       `
         SELECT * FROM "BLOGS"
         WHERE "id" = $1

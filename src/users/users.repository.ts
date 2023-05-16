@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { UserDb, UserSqlJoinedType } from './types/users.types';
+import { User, UserSqlJoinedType } from './types/users.types';
 import { OutputSuperAdminUserDto } from '../superadmin/users/dto/output.super-admin.user.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -8,7 +8,7 @@ import { sqlUserJoinQuery } from '../application-helpers/sql.user.join.query';
 @Injectable()
 export class UsersRepository {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
-  async getUserById(id: string): Promise<UserDb> {
+  async getUserById(id: string): Promise<User> {
     try {
       const result = await this.dataSource.query(
         sqlUserJoinQuery +
@@ -19,13 +19,13 @@ export class UsersRepository {
       );
       if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
-      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+      return this._mapUserSqlJoinedTypeToUserType(foundUser);
     } catch (e) {
       console.log(e);
       return null;
     }
   }
-  async createUser(newUser: UserDb): Promise<OutputSuperAdminUserDto> {
+  async createUser(newUser: User): Promise<OutputSuperAdminUserDto> {
     const insertedIdResult = await this.dataSource.query(
       `
         INSERT INTO "USERS"
@@ -174,7 +174,7 @@ WHERE u."id" = $1;
       return false;
     }
   }
-  async findByLoginOrEmail(loginOrEmail: string): Promise<UserDb> {
+  async findByLoginOrEmail(loginOrEmail: string): Promise<User> {
     try {
       const result = await this.dataSource.query(
         sqlUserJoinQuery +
@@ -185,13 +185,13 @@ WHERE u."id" = $1;
       );
       if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
-      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+      return this._mapUserSqlJoinedTypeToUserType(foundUser);
     } catch (e) {
       console.log(e);
       return;
     }
   }
-  async findByConfirmationCode(emailConfirmationCode: string): Promise<UserDb> {
+  async findByConfirmationCode(emailConfirmationCode: string): Promise<User> {
     try {
       const result = await this.dataSource.query(
         sqlUserJoinQuery +
@@ -202,13 +202,13 @@ WHERE u."id" = $1;
       );
       if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
-      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+      return this._mapUserSqlJoinedTypeToUserType(foundUser);
     } catch (e) {
       console.log(e);
       return;
     }
   }
-  async findByRecoveryCode(recoveryCode: string): Promise<UserDb> {
+  async findByRecoveryCode(recoveryCode: string): Promise<User> {
     try {
       const result = await this.dataSource.query(
         sqlUserJoinQuery +
@@ -219,7 +219,7 @@ WHERE u."id" = $1;
       );
       if (result.length < 1) return null;
       const foundUser: UserSqlJoinedType = result[0];
-      return this._mapUserSqlJoinedTypeToDbType(foundUser);
+      return this._mapUserSqlJoinedTypeToUserType(foundUser);
     } catch (e) {
       console.log(e);
       return;
@@ -331,7 +331,7 @@ WHERE "userId" = $2
     }
     return;
   }
-  private _mapUserSqlJoinedTypeToDbType(user: UserSqlJoinedType): UserDb {
+  private _mapUserSqlJoinedTypeToUserType(user: UserSqlJoinedType): User {
     return {
       id: user.id,
       accountData: {

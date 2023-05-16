@@ -1,7 +1,7 @@
 import { CommandHandler } from '@nestjs/cqrs';
 import { InputBlogCreateDto } from '../dto/input.create-blog.dto';
 import { BlogsRepository } from '../../../blogs/blogs.repository';
-import { BlogDb, BlogViewModelType } from '../../../blogs/types/blogs.types';
+import { Blog, BlogViewModelType } from '../../../blogs/types/blogs.types';
 import { v4 as uuidv4 } from 'uuid';
 import { UsersRepository } from '../../../users/users.repository';
 import { UnauthorizedException } from '@nestjs/common';
@@ -21,7 +21,7 @@ export class CreateBlogUseCase {
   async execute(command: CreateBlogCommand): Promise<BlogViewModelType> {
     const user = await this.usersRepo.getUserById(command.userId);
     if (!user) throw new UnauthorizedException(['wrong user id']);
-    const newBlog = new BlogDb(
+    const newBlog = new Blog(
       uuidv4(),
       command.blogCreateDto.name,
       command.blogCreateDto.description,

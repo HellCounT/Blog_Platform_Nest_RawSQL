@@ -3,7 +3,7 @@ import {
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
-  BlogDb,
+  Blog,
   BlogPaginatorType,
   BlogViewModelType,
 } from './types/blogs.types';
@@ -28,7 +28,7 @@ export class BlogsQuery {
     );
     const allBlogsCount: number = parseInt(allBlogsCountResult[0].count, 10);
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
-    const reqPageDbBlogs: BlogDb[] = await this.dataSource.query(
+    const reqPageDbBlogs: Blog[] = await this.dataSource.query(
       `
       SELECT b."id", b."name", b."description", b."websiteUrl", b."createdAt",
       b."isMembership", b."ownerId", b."isBanned", b."banDate"
@@ -52,7 +52,7 @@ export class BlogsQuery {
     };
   }
   async findBlogById(blogId: string): Promise<BlogViewModelType> {
-    const foundBlogResult: BlogDb[] = await this.dataSource.query(
+    const foundBlogResult: Blog[] = await this.dataSource.query(
       `
       SELECT * FROM "BLOGS"
       WHERE "id" = $1 AND "isBanned" = false
@@ -63,7 +63,7 @@ export class BlogsQuery {
       return this._mapBlogToViewType(foundBlogResult[0]);
     else throw new NotFoundException();
   }
-  _mapBlogToViewType(blog: BlogDb): BlogViewModelType {
+  _mapBlogToViewType(blog: Blog): BlogViewModelType {
     return {
       id: blog.id,
       name: blog.name,

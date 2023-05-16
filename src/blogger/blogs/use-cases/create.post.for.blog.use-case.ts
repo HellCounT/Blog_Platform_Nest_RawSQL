@@ -2,7 +2,7 @@ import { InputCreatePostForBlogDto } from '../dto/input.create-post-for-blog.dto
 import { CommandHandler } from '@nestjs/cqrs';
 import { BlogsRepository } from '../../../blogs/blogs.repository';
 import { PostsRepository } from '../../../posts/posts.repository';
-import { PostDb, PostViewModelType } from '../../../posts/types/posts.types';
+import { Post, PostViewModelType } from '../../../posts/types/posts.types';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -25,7 +25,7 @@ export class CreatePostForBlogUseCase {
     const foundBlog = await this.blogsRepo.getBlogById(command.blogId);
     if (!foundBlog) throw new NotFoundException(['wrong blog id']);
     if (foundBlog.ownerId !== command.userId) throw new ForbiddenException();
-    const newPost = new PostDb(
+    const newPost = new Post(
       uuidv4(),
       command.createPostDto.title,
       command.createPostDto.shortDescription,

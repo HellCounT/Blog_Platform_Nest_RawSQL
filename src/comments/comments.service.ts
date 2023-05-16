@@ -3,58 +3,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { UsersQuery } from '../users/users.query';
-import mongoose from 'mongoose';
-import { CommentDb } from './types/comments.types';
 import { CommentsRepository } from './comments.repository';
-import { CommentViewDto } from './dto/output.comment.view.dto';
 import { LikeStatus } from '../likes/types/likes.types';
 import { CommentsQuery } from './comments.query';
 import { LikesForCommentsService } from '../likes/likes-for-comments.service';
-import { UsersBannedByBloggerRepository } from '../blogger/users/users-banned-by-blogger/users-banned-by-blogger.repository';
-import { PostsRepository } from '../posts/posts.repository';
 
 @Injectable()
 export class CommentsService {
   constructor(
     protected commentsRepo: CommentsRepository,
-    protected readonly postsRepo: PostsRepository,
     protected commentsQueryRepo: CommentsQuery,
-    protected readonly usersQueryRepo: UsersQuery,
     protected likesForCommentsService: LikesForCommentsService,
-    protected readonly usersBannedByBloggerRepo: UsersBannedByBloggerRepository,
   ) {}
-  async createComment(
-    content: string,
-    userId: string,
-    postId: string,
-  ): Promise<CommentViewDto | null> {
-    const foundUser = await this.usersQueryRepo.findUserById(userId);
-    const foundPost = await this.postsRepo.getPostById(postId);
-    if (!foundUser || !foundPost) throw new NotFoundException();
-    const bannedByBlogger = await this.usersBannedByBloggerRepo.findUserBan(
-      foundPost.blogId,
-      userId,
-    );
-    if (bannedByBlogger) throw new ForbiddenException();
-    const newComment = new CommentDb(
-      new mongoose.Types.ObjectId(),
-      content,
-      {
-        userId: userId,
-        userLogin: foundUser.login,
-        isBanned: false,
-      },
-      postId,
-      foundPost.ownerId,
-      new Date().toISOString(),
-      {
-        likesCount: 0,
-        dislikesCount: 0,
-      },
-    );
-    return await this.commentsRepo.createComment(newComment);
-  }
   async updateComment(
     commentId: string,
     userId: string,

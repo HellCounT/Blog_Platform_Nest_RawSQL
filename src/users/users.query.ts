@@ -3,7 +3,7 @@ import { UserQueryType } from './types/users.types';
 import { OutputDeviceDto } from '../security/devices/dto/output.device.dto';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { DeviceDb } from '../security/devices/types/devices.types';
+import { Device } from '../security/devices/types/devices.types';
 
 @Injectable()
 export class UsersQuery {
@@ -28,7 +28,7 @@ WHERE "id" = $1
   async getAllSessionsForCurrentUser(
     userId: string,
   ): Promise<Array<OutputDeviceDto>> {
-    const sessions: Array<DeviceDb> = await this.dataSource.query(
+    const sessions: Array<Device> = await this.dataSource.query(
       `
 SELECT * FROM "DEVICES"
 WHERE "userId" = $1
@@ -37,7 +37,7 @@ WHERE "userId" = $1
     );
     return sessions.map((e) => this._mapDevicesToViewType(e));
   }
-  private _mapDevicesToViewType(device: DeviceDb): OutputDeviceDto {
+  private _mapDevicesToViewType(device: Device): OutputDeviceDto {
     return {
       deviceId: device.id,
       ip: device.ip,

@@ -1,8 +1,4 @@
-import {
-  PostDb,
-  PostDbJoinedType,
-  PostViewModelType,
-} from './types/posts.types';
+import { Post, PostDbJoinedType, PostViewModelType } from './types/posts.types';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -10,9 +6,9 @@ import { DataSource } from 'typeorm';
 @Injectable()
 export class PostsRepository {
   constructor(@InjectDataSource() protected dataSource: DataSource) {}
-  async getPostById(postId: string): Promise<PostDb> {
+  async getPostById(postId: string): Promise<Post> {
     try {
-      const result: PostDb[] = await this.dataSource.query(
+      const result: Post[] = await this.dataSource.query(
         `
         SELECT * FROM "POSTS" as p
         WHERE p."id" = $1
@@ -26,7 +22,7 @@ export class PostsRepository {
       return null;
     }
   }
-  async createPost(newPost: PostDb): Promise<PostViewModelType | null> {
+  async createPost(newPost: Post): Promise<PostViewModelType | null> {
     try {
       await this.dataSource.query(
         `

@@ -1,4 +1,4 @@
-export class DeviceDb {
+export class Device {
   constructor(
     public id: string, //Session Device ID
     public userId: string,

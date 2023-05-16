@@ -2,7 +2,7 @@ import { CommandHandler } from '@nestjs/cqrs';
 import { InputLoginUserDto } from '../dto/input.login.dto';
 import { UsersRepository } from '../../users/users.repository';
 import bcrypt from 'bcrypt';
-import { UserDb } from '../../users/types/users.types';
+import { User } from '../../users/types/users.types';
 
 export class ValidateUserCommand {
   constructor(public userLoginDto: InputLoginUserDto) {}
@@ -10,7 +10,7 @@ export class ValidateUserCommand {
 @CommandHandler(ValidateUserCommand)
 export class ValidateUserUseCase {
   constructor(private readonly usersRepo: UsersRepository) {}
-  async execute(command: ValidateUserCommand): Promise<UserDb | null> {
+  async execute(command: ValidateUserCommand): Promise<User | null> {
     const foundUser = await this.usersRepo.findByLoginOrEmail(
       command.userLoginDto.loginOrEmail,
     );
