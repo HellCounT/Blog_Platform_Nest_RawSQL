@@ -85,7 +85,7 @@ export class LikesForCommentsRepository {
         FROM "LIKES_FOR_COMMENTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."commentId" = $1 AND l."likeStatus" = $2) AND (b."isBanned" = false or b."isBanned" = null)
+        WHERE (l."commentId" = $1 AND l."likeStatus" = $2) AND b."isBanned" = false
         `,
         [commentId, LikeStatus.like],
       );
