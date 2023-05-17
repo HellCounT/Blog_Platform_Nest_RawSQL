@@ -85,9 +85,9 @@ export class LikesForPostsRepository {
         FROM "LIKES_FOR_POSTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.like}) AND (b."isBanned" = false or b."isBanned" = null)
+        WHERE (l."postId" = $1 AND l."likeStatus" = $2) AND (b."isBanned" = false or b."isBanned" = null)
         `,
-        [postId],
+        [postId, LikeStatus.dislike],
       );
       return parseInt(counterResult[0].count, 10);
     } catch (e) {
@@ -103,9 +103,9 @@ export class LikesForPostsRepository {
         FROM "LIKES_FOR_POSTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND b."isBanned" = false
+        WHERE (l."postId" = $1 AND l."likeStatus" = $2) AND b."isBanned" = false
         `,
-        [postId],
+        [postId, LikeStatus.dislike],
       );
       return parseInt(counterResult[0].count, 10);
     } catch (e) {

@@ -85,9 +85,9 @@ export class LikesForCommentsRepository {
         FROM "LIKES_FOR_COMMENTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."commentId" = $1 AND l."likeStatus" = ${LikeStatus.like}) AND (b."isBanned" = false or b."isBanned" = null)
+        WHERE (l."commentId" = $1 AND l."likeStatus" = $2) AND (b."isBanned" = false or b."isBanned" = null)
         `,
-        [commentId],
+        [commentId, LikeStatus.like],
       );
       return parseInt(counterResult[0].count, 10);
     } catch (e) {
@@ -103,9 +103,9 @@ export class LikesForCommentsRepository {
         FROM "LIKES_FOR_COMMENTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."commentId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND b."isBanned" = false
+        WHERE (l."commentId" = $1 AND l."likeStatus" = $2) AND b."isBanned" = false
         `,
-        [commentId],
+        [commentId, LikeStatus.dislike],
       );
       return parseInt(counterResult[0].count, 10);
     } catch (e) {

@@ -182,11 +182,11 @@ export class PostsQuery {
       ON lp."userId" = u."id"
       LEFT JOIN "USERS_GLOBAL_BAN" AS ub
       ON lp."userId" = ub."userId"
-      WHERE (lp."postId" = $1 AND lp."likeStatus" = ${LikeStatus.like}) AND ub."isBanned" = false
+      WHERE (lp."postId" = $1 AND lp."likeStatus" = $2) AND ub."isBanned" = false
       ORDER BY lp."addedAt" DESC
       LIMIT 3 OFFSET 0
       `,
-      [postId],
+      [postId, LikeStatus.like],
     );
   }
   async _mapPostToViewType(
