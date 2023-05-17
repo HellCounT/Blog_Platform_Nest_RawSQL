@@ -164,15 +164,21 @@ export class PostsQuery {
   private async _getNewestLikes(
     postId: string,
   ): Promise<Array<PostLikeJoinedType>> {
-    return this.likeForPostModel
-      .find({
-        postId: postId,
-        likeStatus: LikeStatus.like,
-        isBanned: false,
-      })
-      .sort({ addedAt: -1 })
-      .limit(3)
-      .lean();
+    return await this.dataSource.query(
+      `
+      SELECT lp."id", lp."postId", lp."userId", u."login" as "userLogin",
+      lp."addedAt", lp."likeStatus"
+      FROM "LIKES_FOR_POSTS" AS lp
+      LEFT JOIN "USERS" AS u
+      ON lp."userId" = u."id"
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON lp."userId" = ub."userId"
+      WHERE (lc."postId" = $1 AND lc."likeStatus" = ${LikeStatus.like}) AND (ub."isBanned" = false)
+      ORDER BY lp."addedAt" DESC
+      LIMIT 3 OFFSET 0
+      `,
+      [postId],
+    );
   }
   async _mapPostToViewType(
     post: PostDbJoinedType,
