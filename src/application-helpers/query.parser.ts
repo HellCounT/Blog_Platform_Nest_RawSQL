@@ -165,6 +165,9 @@ export const pickOrderForPostsQuery = (
     case 'blogId':
       orderString += ' p."blogId"';
       break;
+    case 'blogName':
+      orderString += ' b."name"';
+      break;
     case 'ownerId':
       orderString += ' p."ownerId"';
       break;
