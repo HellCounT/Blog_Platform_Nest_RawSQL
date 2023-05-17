@@ -13,7 +13,6 @@ import { PostsRepository } from './posts/posts.repository';
 import { PostsQuery } from './posts/posts.query';
 import { CommentsQuery } from './comments/comments.query';
 import { UsersQuery } from './users/users.query';
-import { MongooseModule } from '@nestjs/mongoose';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { AuthController } from './auth/auth.controller';
@@ -181,7 +180,6 @@ const adapters = [JwtAdapter, EmailManager];
       autoLoadEntities: false,
       synchronize: false,
     }),
-    MongooseModule.forRoot(process.env.MONGO_URL),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'swagger-static'),
       serveRoot: process.env.NODE_ENV === 'development' ? '/' : '/swagger',
