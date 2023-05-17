@@ -1,4 +1,7 @@
-import { QueryParser } from '../application-helpers/query.parser';
+import {
+  pickOrderForCommentsQuery,
+  QueryParser,
+} from '../application-helpers/query.parser';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CommentViewDto } from './dto/output.comment.view.dto';
 import { CommentPaginatorDto } from './dto/output.comment-paginator.dto';
@@ -35,19 +38,33 @@ export class CommentsQuery {
     q: QueryParser,
     activeUserId = '',
   ): Promise<CommentPaginatorDto | null> {
-    const foundCommentsCount = await this.commentModel.countDocuments({
-      'commentatorInfo.isBanned': false,
-      postId: { $eq: postId },
-    });
-    const reqPageDbComments = await this.commentModel
-      .find({
-        'commentatorInfo.isBanned': false,
-        postId: { $eq: postId },
-      })
-      .sort({ [q.sortBy]: q.sortDirection })
-      .skip((q.pageNumber - 1) * q.pageSize)
-      .limit(q.pageSize)
-      .lean();
+    const foundCommentsCountResult = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "COMMENTS" AS c
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON c."userId" = ub."userId"
+      WHERE c."postId" = $1 AND ub."isBanned" = false
+      `,
+      [postId],
+    );
+    const foundCommentsCount = parseInt(foundCommentsCountResult[0].count, 10);
+    const offsetSize = (q.pageNumber - 1) * q.pageSize;
+    const reqPageDbComments: CommentJoinedType[] = await this.dataSource.query(
+      `
+      SELECT
+      c."id", c."content", c."userId", u."id" as "userLogin", c."postId", c."createdAt", c."likesCount", c."dislikesCount"
+      FROM "COMMENTS" AS c
+      LEFT JOIN "USERS" AS u
+      ON c."userId" = u."id"
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON c."userId" = ub."userId"
+      WHERE c."postId" = $1 AND ub."isBanned" = false
+      ${pickOrderForCommentsQuery(q.sortBy, q.sortDirection)}
+      LIMIT $2 OFFSET $3
+      `,
+      [postId, q.pageSize, offsetSize],
+    );
     const items = [];
     for await (const c of reqPageDbComments) {
       const comment = await this._mapCommentToViewType(c, activeUserId);

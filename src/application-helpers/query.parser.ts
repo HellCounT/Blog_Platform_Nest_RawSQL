@@ -192,7 +192,10 @@ export const pickOrderForCommentsQuery = (
       orderString += ' c."content"';
       break;
     case 'userId':
-      orderString += ' c."useId"';
+      orderString += ' c."userId"';
+      break;
+    case 'userLogin':
+      orderString += ' "userLogin"';
       break;
     case 'postId':
       orderString += ' c."postId"';
