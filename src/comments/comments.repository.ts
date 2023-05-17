@@ -95,7 +95,8 @@ export class CommentsRepository {
         `
         DELETE FROM "COMMENTS"
         WHERE "id" = $1
-        `[commentId],
+        `,
+        [commentId],
       );
       return true;
     } catch (e) {
