@@ -17,8 +17,6 @@ export class CommentsQuery {
     id: string,
     activeUserId: string,
   ): Promise<CommentViewDto | null> {
-    if (activeUserId === '')
-      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
     const commentResult: CommentJoinedType[] = await this.dataSource.query(
       `
         SELECT
@@ -109,6 +107,8 @@ export class CommentsQuery {
     comment: CommentJoinedType,
     activeUserId: string,
   ): Promise<CommentViewDto> {
+    if (activeUserId === '')
+      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
     const like = await this.getUserLikeForComment(activeUserId, comment.id);
     return {
       id: comment.id,

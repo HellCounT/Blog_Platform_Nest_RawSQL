@@ -21,8 +21,6 @@ export class PostsQuery {
     q: QueryParser,
     activeUserId: string,
   ): Promise<PostPaginatorType> {
-    if (activeUserId === '')
-      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
     const allPostsCountResult = await this.dataSource.query(
       `
       SELECT COUNT(*)
@@ -193,9 +191,11 @@ export class PostsQuery {
   }
   async _mapPostToViewType(
     post: PostDbJoinedType,
-    userId: string,
+    activeUserId: string,
   ): Promise<PostViewModelType> {
-    const userLike = await this.getUserLikeForPost(userId, post.id);
+    if (activeUserId === '')
+      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
+    const userLike = await this.getUserLikeForPost(activeUserId, post.id);
     const newestLikes = await this._getNewestLikes(post.id);
     const mappedLikes = newestLikes.map((e) => {
       return {
