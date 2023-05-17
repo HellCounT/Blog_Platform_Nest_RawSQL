@@ -4,7 +4,7 @@ import {
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
-  PostDbJoinedType,
+  PostJoinedType,
   PostPaginatorType,
   PostViewModelType,
 } from './types/posts.types';
@@ -33,7 +33,7 @@ export class PostsQuery {
     );
     const allPostsCount: number = parseInt(allPostsCountResult[0].count, 10);
     const offsetSize = (q.pageNumber - 1) * q.pageSize;
-    const reqPageDbPosts: PostDbJoinedType[] = await this.dataSource.query(
+    const reqPageDbPosts: PostJoinedType[] = await this.dataSource.query(
       `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
@@ -67,7 +67,7 @@ export class PostsQuery {
     postId: string,
     activeUserId: string,
   ): Promise<PostViewModelType | null> {
-    const foundPostResult: PostDbJoinedType[] = await this.dataSource.query(
+    const foundPostResult: PostJoinedType[] = await this.dataSource.query(
       `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
@@ -82,9 +82,8 @@ export class PostsQuery {
         `,
       [postId],
     );
-    if (foundPostResult.length === 1)
-      return this._mapPostToViewType(foundPostResult[0], activeUserId);
-    else throw new NotFoundException();
+    if (!foundPostResult[0]) throw new NotFoundException();
+    return this._mapPostToViewType(foundPostResult[0], activeUserId);
   }
   async findPostsByBlogId(
     blogId: string,
@@ -116,7 +115,7 @@ export class PostsQuery {
         10,
       );
       const offsetSize = (q.pageNumber - 1) * q.pageSize;
-      const reqPageDbPosts: PostDbJoinedType[] = await this.dataSource.query(
+      const reqPageDbPosts: PostJoinedType[] = await this.dataSource.query(
         `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
@@ -189,7 +188,7 @@ export class PostsQuery {
     );
   }
   async _mapPostToViewType(
-    post: PostDbJoinedType,
+    post: PostJoinedType,
     activeUserId: string,
   ): Promise<PostViewModelType> {
     if (activeUserId === '')

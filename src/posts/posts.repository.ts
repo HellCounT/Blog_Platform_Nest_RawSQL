@@ -1,4 +1,4 @@
-import { Post, PostDbJoinedType, PostViewModelType } from './types/posts.types';
+import { Post, PostJoinedType, PostViewModelType } from './types/posts.types';
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
@@ -45,7 +45,7 @@ export class PostsRepository {
           newPost.dislikesCount,
         ],
       );
-      const postQuery: PostDbJoinedType[] = await this.dataSource.query(
+      const postQuery: PostJoinedType[] = await this.dataSource.query(
         `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 

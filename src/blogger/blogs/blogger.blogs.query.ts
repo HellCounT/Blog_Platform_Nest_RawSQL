@@ -16,7 +16,7 @@ import {
 } from '../../likes/types/likes.types';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
-import { PostDbJoinedType } from '../../posts/types/posts.types';
+import { PostJoinedType } from '../../posts/types/posts.types';
 import { CommentJoinedType } from '../../comments/types/comments.types';
 
 @Injectable()
@@ -108,7 +108,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
     comment: CommentJoinedType,
     userId: string,
   ): Promise<CommentsForBloggerViewType> {
-    const postSearchResult: PostDbJoinedType[] = await this.dataSource.query(
+    const postSearchResult: PostJoinedType[] = await this.dataSource.query(
       `
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 

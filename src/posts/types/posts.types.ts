@@ -39,7 +39,7 @@ export class Post {
   ) {}
 }
 
-export type PostDbJoinedType = {
+export type PostJoinedType = {
   id: string;
   title: string;
   shortDescription: string;
