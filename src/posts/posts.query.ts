@@ -108,7 +108,7 @@ export class PostsQuery {
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
-        WHERE p."blogId" = $1 AND ub."isBanned" = false AND b."isBanned" = false
+        WHERE b."id" = $1 AND ub."isBanned" = false AND b."isBanned" = false
         `,
         [blogId],
       );
@@ -128,11 +128,11 @@ export class PostsQuery {
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
-        WHERE WHERE "blogId" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
+        WHERE WHERE b."id" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
         ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
-        LIMIT $1 OFFSET $2
+        LIMIT $2 OFFSET $3
         `,
-        [q.pageSize, offsetSize],
+        [blogId, q.pageSize, offsetSize],
       );
       if (reqPageDbPosts.length === 0) return null;
       else {
