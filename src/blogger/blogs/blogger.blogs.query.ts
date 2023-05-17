@@ -79,7 +79,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
     const reqPageDbComments: CommentJoinedType[] = await this.dataSource.query(
       `
       SELECT
-      c."id", c."content", c."userId", u."id" as "userLogin", c."postId", c."createdAt", c."likesCount", c."dislikesCount"
+      c."id", c."content", c."userId", u."login" as "userLogin", c."postId", c."createdAt", c."likesCount", c."dislikesCount"
       FROM "COMMENTS" AS c
       LEFT JOIN "POSTS" AS p
       ON c."postId" = p."id"
