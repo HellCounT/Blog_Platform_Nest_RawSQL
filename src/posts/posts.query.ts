@@ -79,7 +79,7 @@ export class PostsQuery {
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
-        WHERE p."id" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
+        WHERE p."id" = $1 AND ub."isBanned" = false AND b."isBanned" = false
         `,
       [postId],
     );
