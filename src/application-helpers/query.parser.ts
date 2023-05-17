@@ -179,6 +179,41 @@ export const pickOrderForPostsQuery = (
   return orderString;
 };
 
+export const pickOrderForCommentsQuery = (
+  order: string,
+  direction: 1 | -1,
+): string => {
+  let orderString = 'ORDER BY';
+  switch (order) {
+    case 'id':
+      orderString += ' c."id"';
+      break;
+    case 'content':
+      orderString += ' c."content"';
+      break;
+    case 'userId':
+      orderString += ' c."useId"';
+      break;
+    case 'postId':
+      orderString += ' c."postId"';
+      break;
+    case 'likesCount':
+      orderString += ' c."likesCount"';
+      break;
+    case 'dislikesCount':
+      orderString += ' c."dislikesCount"';
+      break;
+    default:
+      orderString = 'ORDER BY c."createdAt"';
+  }
+  if (direction === 1) {
+    orderString += ' ASC';
+  } else {
+    orderString += ' DESC';
+  }
+  return orderString;
+};
+
 export enum BanStatus {
   all = 'all',
   banned = 'banned',

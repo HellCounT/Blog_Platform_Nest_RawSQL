@@ -103,7 +103,7 @@ export class LikesForPostsRepository {
         FROM "LIKES_FOR_POSTS" as l
         LEFT JOIN "USERS_GLOBAL_BAN" as b
         ON l."userId" = b."userId"
-        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND (b."isBanned" = false or b."isBanned" = null)
+        WHERE (l."postId" = $1 AND l."likeStatus" = ${LikeStatus.dislike}) AND b."isBanned" = false
         `,
         [postId],
       );

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   pickOrderForBlogsQuery,
+  pickOrderForCommentsQuery,
   QueryParser,
 } from '../../application-helpers/query.parser';
 import { Blog, BlogPaginatorType } from '../../blogs/types/blogs.types';
@@ -9,11 +10,14 @@ import {
   CommentsForBloggerViewType,
   OutputCommentsPaginatorBloggerDto,
 } from './dto/output.comments.paginator.blogger.dto';
-import { CommentLike, LikeStatus } from '../../likes/types/likes.types';
+import {
+  CommentLikeJoinedType,
+  LikeStatus,
+} from '../../likes/types/likes.types';
 import { DataSource } from 'typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { PostDbJoinedType } from '../../posts/types/posts.types';
-import { Comment } from '../../comments/types/comments.types';
+import { CommentJoinedType } from '../../comments/types/comments.types';
 
 @Injectable()
 export class BloggerBlogsQuery extends BlogsQuery {
@@ -58,17 +62,37 @@ export class BloggerBlogsQuery extends BlogsQuery {
     q: QueryParser,
     userId: string,
   ): Promise<OutputCommentsPaginatorBloggerDto> {
-    const allCommentsCount = await this.commentModel.countDocuments({
-      bloggerId: userId,
-    });
-    const reqPageDbComments = await this.commentModel
-      .find({
-        bloggerId: userId,
-      })
-      .sort({ [q.sortBy]: q.sortDirection })
-      .skip((q.pageNumber - 1) * q.pageSize)
-      .limit(q.pageSize)
-      .lean();
+    const allCommentsCountResult = await this.dataSource.query(
+      `
+      SELECT COUNT(*)
+      FROM "COMMENTS" AS c
+      LEFT JOIN "POSTS" AS p
+      ON c."postId" = p."id"
+      LEFT JOIN "USERS" AS u
+      ON p."ownerId" = u."id"
+      WHERE u."id" = $1
+      `,
+      [userId],
+    );
+    const allCommentsCount = parseInt(allCommentsCountResult[0].count, 10);
+    const offsetSize = (q.pageNumber - 1) * q.pageSize;
+    const reqPageDbComments: CommentJoinedType[] = await this.dataSource.query(
+      `
+      SELECT
+      c."id", c."content", c."userId", u."id" as "userLogin", c."postId", c."createdAt", c."likesCount", c."dislikesCount"
+      FROM "COMMENTS" AS c
+      LEFT JOIN "POSTS" AS p
+      ON c."postId" = p."id"
+      LEFT JOIN "USERS" AS u
+      ON c."userId" = u."id"
+      LEFT JOIN "USERS" AS u
+      ON p."ownerId" = u."id"
+      WHERE u."id" = $1
+      ${pickOrderForCommentsQuery(q.sortBy, q.sortDirection)}
+      LIMIT $2 OFFSET $3
+      `,
+      [userId, q.pageSize, offsetSize],
+    );
     const items = [];
     for await (const c of reqPageDbComments) {
       const comment = await this._mapCommentToBloggerViewType(c, userId);
@@ -83,7 +107,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
     };
   }
   private async _mapCommentToBloggerViewType(
-    comment: Comment,
+    comment: CommentJoinedType,
     userId: string,
   ): Promise<CommentsForBloggerViewType> {
     const postSearchResult: PostDbJoinedType[] = await this.dataSource.query(
@@ -105,16 +129,13 @@ export class BloggerBlogsQuery extends BlogsQuery {
     );
     if (postSearchResult.length < 1) return null;
     const post = postSearchResult[0];
-    const like = await this.getUserLikeForComment(
-      userId,
-      comment._id.toString(),
-    );
+    const like = await this.getUserLikeForComment(userId, comment.id);
     return {
-      id: comment._id.toString(),
+      id: comment.id,
       content: comment.content,
       commentatorInfo: {
-        userId: comment.commentatorInfo.userId,
-        userLogin: comment.commentatorInfo.userLogin,
+        userId: comment.userId,
+        userLogin: comment.userLogin,
       },
       createdAt: comment.createdAt,
       postInfo: {
@@ -124,8 +145,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
         blogName: post.blogName,
       },
       likesInfo: {
-        likesCount: comment.likesInfo.likesCount,
-        dislikesCount: comment.likesInfo.dislikesCount,
+        likesCount: comment.likesCount,
+        dislikesCount: comment.dislikesCount,
         myStatus: like?.likeStatus || LikeStatus.none,
       },
     };
@@ -133,11 +154,26 @@ export class BloggerBlogsQuery extends BlogsQuery {
   async getUserLikeForComment(
     userId: string,
     commentId: string,
-  ): Promise<CommentLike | null> {
-    return this.likeForCommentModel.findOne({
-      commentId: commentId,
-      userId: userId,
-      isBanned: false,
-    });
+  ): Promise<CommentLikeJoinedType | null> {
+    try {
+      const foundLikeResult: CommentLikeJoinedType[] =
+        await this.dataSource.query(
+          `
+      SELECT lc."id", lc."commentId", lc."userId", u."login" as "userLogin",
+      lc."addedAt", lc."likeStatus"
+      FROM "LIKES_FOR_COMMENTS" AS lc
+      LEFT JOIN "USERS" AS u
+      ON lc."userId" = u."id"
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON lc."userId" = ub."userId"
+      WHERE (lc."commentId" = $1 AND lc."userId" = $2) AND ub."isBanned" = false
+      `,
+          [commentId, userId],
+        );
+      return foundLikeResult[0];
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
 }
