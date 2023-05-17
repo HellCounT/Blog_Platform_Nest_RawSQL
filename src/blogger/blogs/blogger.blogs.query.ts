@@ -84,8 +84,8 @@ export class BloggerBlogsQuery extends BlogsQuery {
       LEFT JOIN "POSTS" AS p
       ON c."postId" = p."id"
       LEFT JOIN "USERS" AS u
-      ON p."ownerId" = u."id"
-      WHERE u."id" = $1
+      ON p."userId" = u."id"
+      WHERE p."ownerId" = $1
       ${pickOrderForCommentsQuery(q.sortBy, q.sortDirection)}
       LIMIT $2 OFFSET $3
       `,
