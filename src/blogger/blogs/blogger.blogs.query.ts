@@ -113,7 +113,7 @@ export class BloggerBlogsQuery extends BlogsQuery {
         SELECT p."id", p."title", p."shortDescription", 
         p."content", p."blogId", b."name" as "blogName", p."createdAt", 
         p."ownerId", u."login" as "ownerLogin", ub."isBanned" as "ownerIsBanned", 
-        p."likesCount", p."dislikesCount", p."parentBlogIsBanned"
+        p."likesCount", p."dislikesCount", b."isBanned" as "parentBlogIsBanned"
         FROM "POSTS" as p
         JOIN "BLOGS" as b
         ON p."blogId" = b."id"
