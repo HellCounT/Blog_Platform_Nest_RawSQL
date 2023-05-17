@@ -1,11 +1,10 @@
-import mongoose from 'mongoose';
 import { QueryParser } from '../application-helpers/query.parser';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CommentViewDto } from './dto/output.comment.view.dto';
 import { CommentPaginatorDto } from './dto/output.comment-paginator.dto';
-import { CommentLike, LikeStatus } from '../likes/types/likes.types';
+import { CommentLikeJoinedType, LikeStatus } from '../likes/types/likes.types';
 import { DataSource } from 'typeorm';
-import { Comment } from './types/comments.types';
+import { CommentJoinedType } from './types/comments.types';
 import { InjectDataSource } from '@nestjs/typeorm';
 
 @Injectable()
@@ -15,13 +14,21 @@ export class CommentsQuery {
     id: string,
     activeUserId: string,
   ): Promise<CommentViewDto | null> {
-    const foundCommentInstance = await this.commentModel.findOne({
-      _id: new mongoose.Types.ObjectId(id),
-      'commentatorInfo.isBanned': false,
-    });
-    if (foundCommentInstance)
-      return this._mapCommentToViewType(foundCommentInstance, activeUserId);
-    else throw new NotFoundException();
+    const commentResult: CommentJoinedType[] = await this.dataSource.query(
+      `
+        SELECT
+        c."id", c."content", c."userId", u."id" as "userLogin", c."postId", c."createdAt", c."likesCount", c."dislikesCount"
+        FROM "COMMENTS" AS c
+        LEFT JOIN "USERS" AS u
+        ON c."userId" = u."id"
+        LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+        ON c."userId" = ub."userId"
+        WHERE c."id" = $1 AND ub."isBanned" = false
+        `,
+      [id],
+    );
+    if (commentResult.length === 0) throw new NotFoundException();
+    return this._mapCommentToViewType(commentResult[0], activeUserId);
   }
   async findCommentsByPostId(
     postId: string,
@@ -57,32 +64,44 @@ export class CommentsQuery {
   async getUserLikeForComment(
     userId: string,
     commentId: string,
-  ): Promise<CommentLike | null> {
-    return this.likeForCommentModel.findOne({
-      commentId: commentId,
-      userId: userId,
-      isBanned: false,
-    });
+  ): Promise<CommentLikeJoinedType | null> {
+    try {
+      const foundLikeResult: CommentLikeJoinedType[] =
+        await this.dataSource.query(
+          `
+      SELECT lc."id", lc."commentId", lc."userId", u."login" as "userLogin",
+      lc."addedAt", lc."likeStatus"
+      FROM "LIKES_FOR_COMMENTS" AS lc
+      LEFT JOIN "USERS" AS u
+      ON lc."userId" = u."id"
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON lc."userId" = ub."userId"
+      WHERE (lc."commentId" = $1 AND lc."userId" = $2) AND ub."isBanned" = false
+      `,
+          [commentId, userId],
+        );
+      return foundLikeResult[0];
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   }
   async _mapCommentToViewType(
-    comment: Comment,
+    comment: CommentJoinedType,
     activeUserId: string,
   ): Promise<CommentViewDto> {
-    const like = await this.getUserLikeForComment(
-      activeUserId,
-      comment._id.toString(),
-    );
+    const like = await this.getUserLikeForComment(activeUserId, comment.id);
     return {
-      id: comment._id.toString(),
+      id: comment.id,
       content: comment.content,
       commentatorInfo: {
-        userId: comment.commentatorInfo.userId,
-        userLogin: comment.commentatorInfo.userLogin,
+        userId: comment.userId,
+        userLogin: comment.userLogin,
       },
       createdAt: comment.createdAt,
       likesInfo: {
-        likesCount: comment.likesInfo.likesCount,
-        dislikesCount: comment.likesInfo.dislikesCount,
+        likesCount: comment.likesCount,
+        dislikesCount: comment.dislikesCount,
         myStatus: like?.likeStatus || LikeStatus.none,
       },
     };
