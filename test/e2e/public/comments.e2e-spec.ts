@@ -28,7 +28,7 @@ describe('Auth Controller (e2e)', () => {
     await request(app).delete('/testing/all-data');
   });
   describe(`4. DELETE ${commentsPath}:`, () => {
-    it(`4.1. Should delete comment by id, 404 on GET`, async () => {
+    it(`4.1. Should delete comment by id with 204, then 404 on GET`, async () => {
       const user = await usersFactory.createUser();
       await usersFactory.insertUser(app, user);
       const tokenPair = await usersFactory.loginAndGetTokenPair(app, user);
@@ -47,6 +47,9 @@ describe('Auth Controller (e2e)', () => {
         .delete(commentsPath + '/' + commentId)
         .set(authHeader, getBearerAccessToken(tokenPair.accessToken))
         .expect(204);
+      await request(app)
+        .get(commentsPath + '/' + commentId)
+        .expect(404);
     });
   });
 });
