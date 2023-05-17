@@ -131,21 +131,21 @@ export class BloggerBlogsQuery extends BlogsQuery {
     return {
       id: comment.id,
       content: comment.content,
+      createdAt: comment.createdAt,
       commentatorInfo: {
         userId: comment.userId,
         userLogin: comment.userLogin,
-      },
-      createdAt: comment.createdAt,
-      postInfo: {
-        id: comment.postId,
-        title: post.title,
-        blogId: post.blogId,
-        blogName: post.blogName,
       },
       likesInfo: {
         likesCount: comment.likesCount,
         dislikesCount: comment.dislikesCount,
         myStatus: like?.likeStatus || LikeStatus.none,
+      },
+      postInfo: {
+        blogId: post.blogId,
+        blogName: post.blogName,
+        title: post.title,
+        id: comment.postId,
       },
     };
   }
