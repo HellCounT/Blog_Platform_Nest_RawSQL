@@ -128,7 +128,7 @@ export class PostsQuery {
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
-        WHERE WHERE b."id" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
+        WHERE b."id" = $1 AND ub."isBanned" = false AND b."isBanned" = false
         ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
         LIMIT $2 OFFSET $3
         `,
@@ -164,7 +164,7 @@ export class PostsQuery {
       ON lp."userId" = u."id"
       LEFT JOIN "USERS_GLOBAL_BAN" AS ub
       ON lp."userId" = ub."userId"
-      WHERE (lp."postId" = $1 AND lp."userId" = $2) AND ub."isBanned" = false
+      WHERE lp."postId" = $1 AND lp."userId" = $2 AND ub."isBanned" = false
       `,
       [postId, userId],
     );

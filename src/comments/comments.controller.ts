@@ -43,8 +43,8 @@ export class CommentsController {
     return this.commandBus.execute(
       new UpdateCommentCommand(
         commentId,
-        req.user.userId,
         updateCommentDto.content,
+        req.user.userId,
       ),
     );
   }

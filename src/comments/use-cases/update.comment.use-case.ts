@@ -18,12 +18,11 @@ export class UpdateCommentUseCase {
       command.commentId,
     );
     if (!foundComment) throw new NotFoundException();
-    if (foundComment.userId === command.userId) {
-      await this.commentsRepo.updateComment(command.commentId, command.content);
-      return true;
-    } else
+    if (foundComment.userId !== command.userId)
       throw new ForbiddenException([
         "User is not allowed to edit other user's comment",
       ]);
+    await this.commentsRepo.updateComment(command.commentId, command.content);
+    return true;
   }
 }
