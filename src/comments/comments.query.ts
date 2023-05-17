@@ -17,6 +17,8 @@ export class CommentsQuery {
     id: string,
     activeUserId: string,
   ): Promise<CommentViewDto | null> {
+    if (activeUserId === '')
+      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
     const commentResult: CommentJoinedType[] = await this.dataSource.query(
       `
         SELECT
@@ -30,7 +32,7 @@ export class CommentsQuery {
         `,
       [id],
     );
-    if (commentResult.length === 0) throw new NotFoundException();
+    if (!commentResult[0]) throw new NotFoundException();
     return this._mapCommentToViewType(commentResult[0], activeUserId);
   }
   async findCommentsByPostId(

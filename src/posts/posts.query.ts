@@ -21,6 +21,8 @@ export class PostsQuery {
     q: QueryParser,
     activeUserId: string,
   ): Promise<PostPaginatorType> {
+    if (activeUserId === '')
+      activeUserId = '3465cc2e-f49b-11ed-a05b-0242ac120003';
     const allPostsCountResult = await this.dataSource.query(
       `
       SELECT COUNT(*)
@@ -108,7 +110,7 @@ export class PostsQuery {
         ON p."blogId" = b."id"
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
-        WHERE "blogId" = $1 AND (ub."isBanned" = false AND b."isBanned" = false)
+        WHERE p."blogId" = $1 AND ub."isBanned" = false AND b."isBanned" = false
         `,
         [blogId],
       );
