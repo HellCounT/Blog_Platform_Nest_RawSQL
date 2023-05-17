@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   pickOrderForPostsQuery,
-  pickOrderForUsersQuery,
   QueryParser,
 } from '../application-helpers/query.parser';
 import {
@@ -129,7 +128,7 @@ export class PostsQuery {
         JOIN "USERS_GLOBAL_BAN" as ub
         ON p."ownerId" = ub."userId"
         WHERE b."id" = $1 AND ub."isBanned" = false AND b."isBanned" = false
-        ${pickOrderForUsersQuery(q.sortBy, q.sortDirection)}
+        ${pickOrderForPostsQuery(q.sortBy, q.sortDirection)}
         LIMIT $2 OFFSET $3
         `,
         [blogId, q.pageSize, offsetSize],
