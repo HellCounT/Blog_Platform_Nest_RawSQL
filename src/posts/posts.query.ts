@@ -155,11 +155,20 @@ export class PostsQuery {
     userId: string,
     postId: string,
   ): Promise<PostLikeJoinedType> {
-    return this.likeForPostModel.findOne({
-      postId: postId,
-      userId: userId,
-      isBanned: false,
-    });
+    const foundLikeResult: PostLikeJoinedType[] = await this.dataSource.query(
+      `
+      SELECT lp."id", lp."postId", lp."userId", u."login" as "userLogin",
+      lp."addedAt", lp."likeStatus"
+      FROM "LIKES_FOR_POSTS" AS lp
+      LEFT JOIN "USERS" AS u
+      ON lp."userId" = u."id"
+      LEFT JOIN "USERS_GLOBAL_BAN" AS ub
+      ON lp."userId" = ub."userId"
+      WHERE (lp."postId" = $1 AND lp."userId" = $2) AND ub."isBanned" = false
+      `,
+      [postId, userId],
+    );
+    return foundLikeResult[0];
   }
   private async _getNewestLikes(
     postId: string,
@@ -173,7 +182,7 @@ export class PostsQuery {
       ON lp."userId" = u."id"
       LEFT JOIN "USERS_GLOBAL_BAN" AS ub
       ON lp."userId" = ub."userId"
-      WHERE (lc."postId" = $1 AND lc."likeStatus" = ${LikeStatus.like}) AND (ub."isBanned" = false)
+      WHERE (lp."postId" = $1 AND lp."likeStatus" = ${LikeStatus.like}) AND ub."isBanned" = false
       ORDER BY lp."addedAt" DESC
       LIMIT 3 OFFSET 0
       `,
