@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  blog-web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    volumes:
+      - ./swagger-static:/usr/src/app/swagger-static
+    networks:
+      default:
+
+networks:
+  default:
